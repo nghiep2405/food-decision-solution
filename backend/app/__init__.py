@@ -1,0 +1,1 @@
+"""Food Decision backend application."""

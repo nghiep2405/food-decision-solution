@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Food Decision">
+  <rect width="64" height="64" rx="18" fill="#18392b"/>
+  <path d="M17 33c0-9 6.7-16 15-16s15 7 15 16H17Z" fill="#f2b84b"/>
+  <path d="M14 36h36c0 6-4.8 11-10.8 11H24.8C18.8 47 14 42 14 36Z" fill="#fff8e7"/>
+  <circle cx="32" cy="13" r="3" fill="#e96b47"/>
+</svg>
