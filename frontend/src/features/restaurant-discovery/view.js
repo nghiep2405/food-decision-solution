@@ -12,23 +12,11 @@ const DEFAULT_CRITERIA = Object.freeze({
 
 function renderShell() {
   return `
-    <header class="site-header">
-      <a class="brand" href="#main-content" aria-label="Food Decision - về nội dung chính">
-        <span class="brand__mark" aria-hidden="true">FD</span>
-        <span>
-          <strong>Food Decision</strong>
-          <small>Restaurant discovery demo</small>
-        </span>
-      </a>
-      <span class="demo-pill">Dữ liệu giả lập</span>
-    </header>
-
-    <main id="main-content">
-      <section class="hero" aria-labelledby="page-title">
+      <section class="ui-page-hero" aria-labelledby="page-title">
         <div>
-          <p class="eyebrow">Tìm đúng món, trong đúng phạm vi</p>
+          <p class="ui-kicker">Tìm đúng món, trong đúng phạm vi</p>
           <h1 id="page-title">Hôm nay bạn muốn ăn gì?</h1>
-          <p class="hero__lead">
+          <p class="ui-page-hero__lead">
             Lọc quán theo món, khu vực, khoảng cách và ngân sách. Kết quả thiếu giá hoặc menu
             chưa xác minh vẫn được hiển thị với cảnh báo rõ ràng.
           </p>
@@ -138,15 +126,6 @@ function renderShell() {
           <div class="restaurant-grid" data-role="restaurant-list"></div>
         </section>
       </section>
-    </main>
-
-    <div class="selection-bar" data-role="selection-bar" hidden>
-      <div>
-        <small>Quán đã chọn</small>
-        <strong data-role="selected-name"></strong>
-      </div>
-      <button type="button" data-action="clear-selection">Bỏ chọn</button>
-    </div>
   `;
 }
 
@@ -216,7 +195,7 @@ function readCriteria(form) {
   };
 }
 
-export function createRestaurantDiscoveryView() {
+export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
   let root;
   let restaurants = [];
   let selectedId = null;
@@ -230,8 +209,6 @@ export function createRestaurantDiscoveryView() {
       count: root.querySelector('[data-role="result-count"]'),
       summary: root.querySelector('[data-role="criteria-summary"]'),
       radiusOutput: root.querySelector('[data-role="radius-output"]'),
-      selectionBar: root.querySelector('[data-role="selection-bar"]'),
-      selectedName: root.querySelector('[data-role="selected-name"]'),
     };
   }
 
@@ -256,11 +233,8 @@ export function createRestaurantDiscoveryView() {
   }
 
   function renderSelection() {
-    const elements = getElements();
     const selectedRestaurant = restaurants.find((item) => item.id === selectedId);
-
-    elements.selectionBar.hidden = !selectedRestaurant;
-    elements.selectedName.textContent = selectedRestaurant?.name ?? '';
+    onSelectionChange?.(selectedRestaurant ?? null);
   }
 
   function resetForm() {
@@ -300,11 +274,6 @@ export function createRestaurantDiscoveryView() {
         renderSelection();
       }
 
-      if (button.dataset.action === 'clear-selection') {
-        selectedId = null;
-        renderResults();
-        renderSelection();
-      }
     });
   }
 
@@ -331,5 +300,11 @@ export function createRestaurantDiscoveryView() {
     loadData();
   }
 
-  return { mount };
+  function clearSelection() {
+    selectedId = null;
+    renderResults();
+    renderSelection();
+  }
+
+  return { mount, clearSelection };
 }

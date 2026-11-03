@@ -1,3 +1,22 @@
+.search-orbit {
+  position: relative;
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.search-orbit__ring {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-accent-soft) 42%, transparent);
+}
+
+.search-orbit__ring--outer { inset: 0; }
+.search-orbit__ring--inner { inset: 25%; background: color-mix(in srgb, var(--color-accent-soft) 80%, transparent); }
+.search-orbit__pin { z-index: 1; width: 1.35rem; height: 1.35rem; border: 0.3rem solid var(--color-canvas); border-radius: 50% 50% 50% 0; background: var(--color-accent-strong); box-shadow: 0 0.45rem 1rem color-mix(in srgb, var(--color-accent-strong) 25%, transparent); transform: rotate(-45deg); }
+.search-orbit__label { position: absolute; right: 1.1rem; bottom: 2.2rem; border-radius: var(--radius-pill); padding: 0.36rem 0.58rem; background: var(--color-ink); color: white; font-size: 0.68rem; font-weight: 800; }
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.55fr);
@@ -406,48 +425,6 @@
   color: white;
 }
 
-.selection-bar {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  left: 1rem;
-  z-index: 5;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 40rem;
-  margin: auto;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 1rem;
-  padding: 0.8rem 0.9rem 0.8rem 1.1rem;
-  background: var(--color-ink);
-  box-shadow: 0 1.1rem 3rem rgba(12, 31, 23, 0.28);
-  color: white;
-}
-
-.selection-bar[hidden] {
-  display: none;
-}
-
-.selection-bar div {
-  display: grid;
-}
-
-.selection-bar small {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.selection-bar button {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.7rem;
-  padding: 0.55rem 0.75rem;
-  background: transparent;
-  color: white;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.78rem;
-}
-
 @media (max-width: 850px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -484,4 +461,8 @@
   .select-button {
     width: 100%;
   }
+}
+
+@media (max-width: 700px) {
+  .search-orbit { display: none; }
 }
