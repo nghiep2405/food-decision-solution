@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WP6 Recommendation & Ranked Results Demo | Food Decision</title>
+  </head>
+  <body style="margin: 0">
+    <div id="wp6-demo-root"></div>
+    <script type="module">
+      import './src/styles/global.css';
+      import { createAppShell } from './src/core/ui/app-shell.js';
+      import { mountRecommendation } from './src/features/recommendation/index.js';
+      import { mountResults } from './src/features/results/index.js';
+
+      const root = document.getElementById('wp6-demo-root');
+      let currentView = 'recommendation'; // 'recommendation' | 'results'
+      let activeFeature = null;
+      let latestSearchContext = null;
+
+      const shell = createAppShell(root, {
+        onBack() {
+          if (currentView === 'results') {
+            openRecommendationView();
+          }
+        },
+        onClearSelection() {
+          activeFeature?.clearSelection?.();
+          shell.setSelection(null);
+          shell.showToast('Đã bỏ chọn quán.', 'info');
+        },
+        onContinueSelection() {
+          shell.showToast('Điểm bàn giao SelectedRestaurant -> Menu & Budget (WP3/WP4).', 'success');
+        },
+      });
+
+      function openRecommendationView() {
+        currentView = 'recommendation';
+        activeFeature?.unmount?.();
+        shell.setSelection(null);
+        shell.setBackAction({ visible: false });
+        activeFeature = mountRecommendation(shell.main, {
+          onSubmit(searchContext) {
+            latestSearchContext = searchContext;
+            shell.showToast('Đã tạo SearchContext hợp lệ và chuyển sang xếp hạng.', 'success');
+            openResultsView(searchContext);
+          },
+          onSwitchMode() {
+            openResultsView(null, 'direct');
+            shell.showToast('Đang xem kết quả mẫu cho chế độ Tìm theo món (Direct Search).', 'info');
+          },
+        });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+
+      function openResultsView(searchContext = latestSearchContext, initialScenario = 'recommendation') {
+        currentView = 'results';
+        activeFeature?.unmount?.();
+        shell.setSelection(null);
+        shell.setBackAction({ visible: true, label: 'Sở thích & Bối cảnh' });
+        activeFeature = mountResults(shell.main, {
+          searchContext,
+          initialScenario,
+          onSelectRestaurant(restaurant) {
+            shell.setSelection(
+              restaurant ? { label: 'Quán đã chọn từ bảng xếp hạng', name: restaurant.name } : null,
+            );
+            if (restaurant) {
+              shell.showToast(`Đã chọn ${restaurant.name}.`, 'success');
+            }
+          },
+          onOpenDetail(restaurant) {
+            shell.setSelection({ label: 'Chuyển sang Menu & Budget', name: restaurant.name });
+            shell.showToast(`Bàn giao ${restaurant.name} sang feature Menu & Budget (WP3/WP4).`, 'info');
+          },
+          onOpenFeedback() {
+            shell.showToast('Bàn giao FeedbackSubmission sang feature Feedback (WP8).', 'info');
+          },
+          onChangeSearchContext() {
+            openRecommendationView();
+          },
+        });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+
+      openRecommendationView();
+    </script>
+  </body>
+</html>
