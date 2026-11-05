@@ -1,6 +1,6 @@
 # Food Decision Frontend
 
-Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Bản hiện tại có Home/Mode Selection, AppShell dùng chung và demo Restaurant Discovery bằng dữ liệu JSON cục bộ.
+Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Bản hiện tại đã tích hợp Home, Restaurant Discovery, Recommendation, Ranked Results, Menu và Budget bằng dữ liệu mock.
 
 ## Yêu cầu và cách chạy
 
@@ -38,10 +38,12 @@ npm run preview
 |---|---|
 | `#/` | Home / Mode Selection |
 | `#/search` | Restaurant Discovery demo |
-| `#/recommendation` | Điểm mount cho feature Recommendation |
-| `#/restaurant-detail` | Điểm bàn giao Restaurant -> Menu/Budget |
+| `#/recommendation` | Recommendation Request |
+| `#/results` | Ranked Results & Compare |
+| `#/restaurant-detail` hoặc `#/menu` | Restaurant Detail / Menu |
+| `#/budget` | Budget Planner |
 
-Các màn hình bàn giao không giả lập nghiệp vụ của thành viên khác. Khi feature tương ứng hoàn tất, `app.js` sẽ thay `renderIntegrationStage()` bằng public mount function của feature đó.
+Danh sách URL đầy đủ và luồng review được ghi tại `../url_ui.md`.
 
 ## Cấu trúc chính
 

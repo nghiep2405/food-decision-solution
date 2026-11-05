@@ -25,7 +25,7 @@ function renderShell() {
       </div>
       <div class="ui-selection-bar__actions">
         <button class="ui-button ui-button--selection-secondary" type="button" data-action="clear-selection">Bỏ chọn</button>
-        <button class="ui-button ui-button--selection-primary" type="button" data-action="continue-selection">Xem bước tiếp</button>
+        <button class="ui-button ui-button--selection-primary" type="button" data-action="continue-selection" data-role="selection-continue">Xem bước tiếp</button>
       </div>
     </div>
     <div class="ui-loading-overlay" data-role="loading-overlay" hidden>
@@ -58,6 +58,7 @@ export function createAppShell(root, handlers = {}) {
     selectionBar: root.querySelector('[data-role="selection-bar"]'),
     selectionLabel: root.querySelector('[data-role="selection-label"]'),
     selectionName: root.querySelector('[data-role="selection-name"]'),
+    selectionContinue: root.querySelector('[data-role="selection-continue"]'),
     loadingOverlay: root.querySelector('[data-role="loading-overlay"]'),
     loadingLabel: root.querySelector('[data-role="loading-label"]'),
     modalBackdrop: root.querySelector('[data-role="modal-backdrop"]'),
@@ -84,6 +85,7 @@ export function createAppShell(root, handlers = {}) {
     elements.selectionBar.hidden = !selection;
     elements.selectionLabel.textContent = selection?.label ?? 'Đã chọn';
     elements.selectionName.textContent = selection?.name ?? '';
+    elements.selectionContinue.textContent = selection?.actionLabel ?? 'Xem bước tiếp';
   }
 
   function openModal() {

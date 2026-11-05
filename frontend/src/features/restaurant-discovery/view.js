@@ -197,6 +197,7 @@ function readCriteria(form) {
 
 export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
   let root;
+  let mounted = false;
   let restaurants = [];
   let selectedId = null;
   let criteria = { ...DEFAULT_CRITERIA };
@@ -247,6 +248,18 @@ export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
     renderSelection();
   }
 
+  function handleRootClick(event) {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+
+    if (button.dataset.action === 'reset') resetForm();
+    if (button.dataset.action === 'select') {
+      selectedId = button.dataset.restaurantId;
+      renderResults();
+      renderSelection();
+    }
+  }
+
   function bindEvents() {
     const elements = getElements();
 
@@ -260,21 +273,7 @@ export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
       elements.radiusOutput.value = `${event.currentTarget.value} km`;
     });
 
-    root.addEventListener('click', (event) => {
-      const button = event.target.closest('button[data-action]');
-      if (!button) return;
-
-      if (button.dataset.action === 'reset') {
-        resetForm();
-      }
-
-      if (button.dataset.action === 'select') {
-        selectedId = button.dataset.restaurantId;
-        renderResults();
-        renderSelection();
-      }
-
-    });
+    root.addEventListener('click', handleRootClick);
   }
 
   async function loadData() {
@@ -282,8 +281,10 @@ export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
 
     try {
       restaurants = await fetchRestaurants();
+      if (!mounted) return;
       renderResults();
     } catch (error) {
+      if (!mounted) return;
       elements.count.textContent = 'Không tải được';
       elements.status.hidden = false;
       elements.status.innerHTML = `
@@ -295,6 +296,7 @@ export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
 
   function mount(container) {
     root = container;
+    mounted = true;
     root.innerHTML = renderShell();
     bindEvents();
     loadData();
@@ -306,5 +308,13 @@ export function createRestaurantDiscoveryView({ onSelectionChange } = {}) {
     renderSelection();
   }
 
-  return { mount, clearSelection };
+  function unmount() {
+    if (!root) return;
+    mounted = false;
+    root.removeEventListener('click', handleRootClick);
+    root.replaceChildren();
+    root = null;
+  }
+
+  return { mount, unmount, clearSelection };
 }

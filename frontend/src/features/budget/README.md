@@ -14,7 +14,20 @@ Frontend demo bằng mock data; chưa có backend hoặc tính năng thanh toán
 - `style.css`: CSS dùng token thiết kế của nhóm, class prefix `budget-`.
 
 ## Input/output
-`mountBudget(element, { menu, restaurant })` tạo giao diện, trả về `{unmount(), getSummary()}`.
+`mountBudget(element, options)` tạo giao diện, trả về `{unmount(), getSummary()}`. Các option được hỗ trợ:
+
+```js
+{
+  menu,
+  restaurant,
+  initialSelections,
+  initialDinerCount,
+  initialBudget,
+  initialBudgetMode,
+}
+```
+
+`initialSelections` nhận trực tiếp lựa chọn từ Menu; các giá trị còn lại giúp giữ số người và ngân sách từ `SearchContext` của Recommendation.
 
 `calculateBudget({menu, selections, dinerCount, budget, budgetMode})` trả về `BudgetSummary` có `items, estimatedTotal, dinerCount, costPerPerson, budget, remaining, exceeded, completeness, warnings` cùng `status, difference, budgetMode`.
 

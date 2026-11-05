@@ -14,7 +14,11 @@ export function createMenuView(options = {}) {
   const restaurant = options.restaurant ?? demoRestaurant;
   const items = normalizeMenu(options.menu ?? demoMenu);
   const onSelectionChange = typeof options.onSelectionChange === 'function' ? options.onSelectionChange : () => {};
-  const selections = new Map();
+  const selections = new Map(
+    (Array.isArray(options.initialSelections) ? options.initialSelections : [])
+      .filter((selection) => Number(selection.quantity) > 0)
+      .map((selection) => [selection.itemId, { ...selection, quantity: Number(selection.quantity) }]),
+  );
   let root;
   let state = options.state ?? 'default';
 
@@ -23,6 +27,8 @@ export function createMenuView(options = {}) {
     if (!root) return;
     const groups = groupByCategory(items);
     const totalQty = getSelections().reduce((sum, s) => sum + s.quantity, 0);
+    const restaurantStatus = restaurant.verificationStatus ?? 'unknown';
+    const restaurantStatusClass = restaurantStatus === 'verified' ? 'success' : 'warning';
     root.innerHTML = `
       <section class="menu-page">
         <header class="menu-header">
@@ -40,7 +46,7 @@ export function createMenuView(options = {}) {
               <div class="menu-meta">
                 <span>⭐ ${restaurant.rating == null ? 'Chưa có điểm đánh giá' : escapeHtml(restaurant.rating)}</span>
                 <span>🧭 ${restaurant.route == null ? 'Chưa có tuyến đường' : escapeHtml(restaurant.route)}</span>
-                <span class="menu-pill menu-pill--warning">Chưa xác minh quán</span>
+                <span class="menu-pill menu-pill--${restaurantStatusClass}">${escapeHtml(statusText[restaurantStatus] ?? statusText.unknown)}</span>
               </div>
             </section>
             <section class="menu-panel"><div class="menu-panel-heading"><div><div class="menu-kicker">NORMALIZED MENU</div><h2>Thực đơn</h2></div><span class="menu-small">${items.length} món minh họa</span></div>
@@ -95,7 +101,9 @@ export function createMenuView(options = {}) {
     const item = items.find(i=>i.id===el.dataset.id); if (!item) return;
     const prev = selections.get(item.id) ?? {itemId:item.id, variantId:item.variants[0]?.id, quantity:0};
     const next={...prev, quantity:Math.max(0,prev.quantity + (action==='plus'?1:-1))};
-    selections.set(item.id,next); onSelectionChange(getSelections(),items); render();
+    if (next.quantity === 0) selections.delete(item.id);
+    else selections.set(item.id,next);
+    onSelectionChange(getSelections(),items); render();
   }
   function handleChange(event) {
     if (event.target.dataset.action==='state') {state=event.target.value; render(); return;}
@@ -106,6 +114,7 @@ export function createMenuView(options = {}) {
   return {
     mount(container) {if(!container) throw new Error('Missing menu mount container'); root=container; root.addEventListener('click',handleClick);root.addEventListener('change',handleChange);render();},
     unmount() {if(root){root.removeEventListener('click',handleClick);root.removeEventListener('change',handleChange);root.innerHTML='';root=null;}},
+    clearSelection() { selections.clear(); onSelectionChange([], items); render(); },
     getSelections,
     getMenu:()=>items.map(item=>({...item})),
   };
