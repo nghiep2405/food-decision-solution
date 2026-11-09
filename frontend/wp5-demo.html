@@ -1,110 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WP5 - Review Reliability Demo</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-      line-height: 1.5;
-    }
-    .demo-controls {
-      margin-bottom: 24px;
-      padding: 16px;
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-    }
-    .demo-controls h3 { margin-top: 0; }
-    .container-wrapper {
-      border: 2px dashed #ccc;
-      padding: 24px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      min-height: 300px;
-    }
-    #output {
-      background: #212529;
-      color: #33ff33;
-      padding: 16px;
-      border-radius: 8px;
-      overflow-x: auto;
-      min-height: 150px;
-      font-family: monospace;
-      font-size: 14px;
-    }
-    button {
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-  </style>
-  <!-- Nhúng CSS của feature WP5 -->
-  <link rel="stylesheet" href="./frontend/src/features/results/review-reliability/style.css">
-</head>
-<body>
-  <h1>Demo WP5 – Review Reliability</h1>
-  <p>Trang giả lập môi trường tích hợp module Phân tích độ tin cậy của đánh giá (Review Reliability).</p>
-  
-  <div class="demo-controls">
-    <h3>Môi trường giả lập (Mock Environment)</h3>
-    <label>
-      <input type="radio" name="preset" value="valid-review" checked> 
-      Đánh giá hợp lệ (Valid Review)
-    </label>
-    <label style="margin-left: 20px;">
-      <input type="radio" name="preset" value="spam-review"> 
-      Đánh giá rác/Spam (Spam/Fake Review)
-    </label>
-    <button id="btn-mount" style="margin-left: 20px;">Mount Component</button>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WP5 Review Reliability Demo | Food Decision</title>
+  </head>
+  <body>
+    <div id="wp5-demo-root"></div>
+    <script type="module">
+      import './src/styles/global.css';
+      import { createAppShell } from './src/core/ui/app-shell.js';
+      import { mountReviewReliability } from './src/features/review-reliability/index.js';
 
-  <div class="container-wrapper">
-    <!-- Nơi render component -->
-    <div id="wp5-container"></div>
-  </div>
+      const root = document.getElementById('wp5-demo-root');
+      const shell = createAppShell(root);
+      shell.setBackAction({ visible: false });
 
-  <h3>Kết quả phân tích trả về</h3>
-  <pre id="output">Chưa có dữ liệu. Hãy tương tác với form ở trên và bấm Submit...</pre>
-
-  <script type="module">
-    // Import hàm mount từ Public API của WP5 (Review Reliability) dựa theo cấu trúc thư mục thực tế
-    import { mountReviewReliability } from './frontend/src/features/results/review-reliability/index.js';
-
-    const container = document.getElementById('wp5-container');
-    const outputArea = document.getElementById('output');
-    
-    function initFeature(presetMode) {
-      // Dọn dẹp DOM container trước khi mount lại
-      container.innerHTML = '';
-      
-      // Giả lập gọi hàm mount với các callback tương ứng cho WP5
-      mountReviewReliability(container, {
-        initialPreset: presetMode,
-        onSubmit(analysisResult) {
-          console.log('Nhận được kết quả phân tích:', analysisResult);
-          outputArea.textContent = JSON.stringify(analysisResult, null, 2);
+      mountReviewReliability(shell.main, {
+        restaurant: {
+          id: 'review-demo-restaurant',
+          name: 'Quán ăn mẫu - Review Reliability',
         },
-        onError(error) {
-          console.error('Lỗi xử lý:', error);
-          outputArea.textContent = `Error: ${error.message}`;
-        }
+        initialScenario: 'normal',
+        onOpenFeedback() {
+          shell.showToast('Đã tạo điểm bàn giao sang feature Feedback.', 'info');
+        },
       });
-      
-      outputArea.textContent = `Đã mount component WP5 với dữ liệu mẫu: ${presetMode}. Đang chờ submit...`;
-    }
-
-    // Khởi tạo lần đầu
-    initFeature('valid-review');
-
-    // Xử lý nút Mount lại
-    document.getElementById('btn-mount').addEventListener('click', () => {
-      const selectedPreset = document.querySelector('input[name="preset"]:checked').value;
-      initFeature(selectedPreset);
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

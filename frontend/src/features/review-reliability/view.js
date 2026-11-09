@@ -50,10 +50,13 @@ export function createReviewReliabilityView({
   initialScenario = 'normal',
   onOpenFeedback,
   reviewsData = null,
+  summaryData = null,
+  restaurant = null,
 } = {}) {
   let root = null;
-  let activeScenario = reviewsData ? 'custom' : initialScenario;
+  let activeScenario = reviewsData || summaryData ? 'custom' : initialScenario;
   let currentReviews = reviewsData ?? (MOCK_REVIEWS_SCENARIOS[initialScenario] || []);
+  let currentSummary = summaryData;
   let viewState = 'default'; // 'default' | 'loading' | 'error'
 
   function renderSystemStateBlock() {
@@ -82,7 +85,9 @@ export function createReviewReliabilityView({
   }
 
   function renderTemplate() {
-    const summary = viewState === 'default' ? analyzeReviewReliabilityMock(currentReviews) : null;
+    const summary = viewState === 'default'
+      ? (currentSummary ?? analyzeReviewReliabilityMock(currentReviews))
+      : null;
 
     return `
       <section class="review-section" aria-labelledby="review-page-title">
@@ -90,6 +95,7 @@ export function createReviewReliabilityView({
           <div>
             <p class="review-hero__kicker">Feature E · AI Review Reliability</p>
             <h2 class="review-hero__title" id="review-page-title">Phân tích Độ tin cậy Đánh giá</h2>
+            ${restaurant ? `<p class="review-context">Quán đang xem: <strong>${escapeHtml(restaurant.name)}</strong></p>` : ''}
           </div>
           ${summary ? renderReviewBadge(summary) : ''}
         </header>
@@ -155,6 +161,7 @@ export function createReviewReliabilityView({
     if (action === 'switch-scenario') {
       activeScenario = button.dataset.scenario;
       currentReviews = MOCK_REVIEWS_SCENARIOS[activeScenario] || [];
+      currentSummary = null;
       viewState = 'default';
       rerender();
       return;
@@ -175,7 +182,7 @@ export function createReviewReliabilityView({
     if (action === 'report-feedback') {
       onOpenFeedback?.({
         targetType: 'review_reliability',
-        targetId: 'current-restaurant-reviews'
+        targetId: restaurant?.id ?? 'current-restaurant-reviews'
       });
     }
   }
@@ -200,8 +207,19 @@ export function createReviewReliabilityView({
       if (!nextReviews) return;
       activeScenario = 'custom';
       currentReviews = nextReviews;
+      currentSummary = null;
       viewState = 'default';
       rerender();
+    },
+    setSummaryData(nextSummary) {
+      if (!nextSummary) return;
+      activeScenario = 'custom';
+      currentSummary = nextSummary;
+      viewState = 'default';
+      rerender();
+    },
+    getSummary() {
+      return currentSummary ?? analyzeReviewReliabilityMock(currentReviews);
     },
     setViewState(state) {
       viewState = state;

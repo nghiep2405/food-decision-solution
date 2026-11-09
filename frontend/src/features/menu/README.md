@@ -10,6 +10,7 @@ const menuFeature = mountMenu(container, {
   menu,
   initialSelections,
   onSelectionChange(selections, normalizedMenu) {},
+  onOpenReviewReliability(restaurant) {},
 });
 ```
 
@@ -17,6 +18,7 @@ const menuFeature = mountMenu(container, {
 - `menu`: mảng menu chuẩn hóa; nếu thiếu sẽ dùng mock data.
 - `initialSelections`: mảng `{ itemId, variantId, quantity }` để giữ lựa chọn khi quay lại từ Budget.
 - `onSelectionChange`: bàn giao lựa chọn món và menu chuẩn hóa cho AppShell/Budget.
+- `onOpenReviewReliability`: mở phân tích Review Reliability cho đúng quán đang xem.
 
 Feature trả về `unmount()`, `clearSelection()`, `getSelections()` và `getMenu()`.
 

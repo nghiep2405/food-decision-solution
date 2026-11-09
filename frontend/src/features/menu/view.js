@@ -14,6 +14,9 @@ export function createMenuView(options = {}) {
   const restaurant = options.restaurant ?? demoRestaurant;
   const items = normalizeMenu(options.menu ?? demoMenu);
   const onSelectionChange = typeof options.onSelectionChange === 'function' ? options.onSelectionChange : () => {};
+  const onOpenReviewReliability = typeof options.onOpenReviewReliability === 'function'
+    ? options.onOpenReviewReliability
+    : null;
   const selections = new Map(
     (Array.isArray(options.initialSelections) ? options.initialSelections : [])
       .filter((selection) => Number(selection.quantity) > 0)
@@ -48,6 +51,7 @@ export function createMenuView(options = {}) {
                 <span>🧭 ${restaurant.route == null ? 'Chưa có tuyến đường' : escapeHtml(restaurant.route)}</span>
                 <span class="menu-pill menu-pill--${restaurantStatusClass}">${escapeHtml(statusText[restaurantStatus] ?? statusText.unknown)}</span>
               </div>
+              ${onOpenReviewReliability ? `<div class="menu-restaurant-actions"><button type="button" class="menu-button menu-button--outline" data-action="open-review-reliability">Xem độ tin cậy đánh giá</button></div>` : ''}
             </section>
             <section class="menu-panel"><div class="menu-panel-heading"><div><div class="menu-kicker">NORMALIZED MENU</div><h2>Thực đơn</h2></div><span class="menu-small">${items.length} món minh họa</span></div>
               <div class="menu-states" aria-label="Chế độ kiểm tra giao diện">
@@ -97,6 +101,7 @@ export function createMenuView(options = {}) {
     const el = event.target.closest('[data-action]'); if (!el) return;
     const action = el.dataset.action;
     if (action==='retry') {state='default'; render(); return;}
+    if (action==='open-review-reliability') {onOpenReviewReliability?.(restaurant); return;}
     if (!['plus','minus'].includes(action)) return;
     const item = items.find(i=>i.id===el.dataset.id); if (!item) return;
     const prev = selections.get(item.id) ?? {itemId:item.id, variantId:item.variants[0]?.id, quantity:0};

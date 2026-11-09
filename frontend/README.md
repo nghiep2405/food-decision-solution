@@ -1,6 +1,6 @@
 # Food Decision Frontend
 
-Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Bản hiện tại đã tích hợp Home, Restaurant Discovery, Recommendation, Ranked Results, Menu và Budget bằng dữ liệu mock.
+Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Bản hiện tại đã tích hợp Home, Restaurant Discovery, Recommendation, Ranked Results, Menu, Budget và Review Reliability bằng dữ liệu mock.
 
 ## Yêu cầu và cách chạy
 
@@ -42,6 +42,7 @@ npm run preview
 | `#/results` | Ranked Results & Compare |
 | `#/restaurant-detail` hoặc `#/menu` | Restaurant Detail / Menu |
 | `#/budget` | Budget Planner |
+| `#/review-reliability` | Review Reliability Summary và tín hiệu phân tích |
 
 Danh sách URL đầy đủ và luồng review được ghi tại `../url_ui.md`.
 

@@ -35,6 +35,16 @@
   margin: 0;
 }
 
+.review-context {
+  margin: 10px 0 0;
+  color: var(--color-muted, #708077);
+  font-size: 0.82rem;
+}
+
+.review-context strong {
+  color: var(--color-ink, #18392b);
+}
+
 .review-scenario-bar,
 .review-state-switcher {
   display: flex;

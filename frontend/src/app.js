@@ -6,6 +6,7 @@ import { mountRecommendation } from './features/recommendation/index.js';
 import { mountResults } from './features/results/index.js';
 import { demoMenu, demoRestaurant, mountMenu } from './features/menu/index.js';
 import { mountBudget } from './features/budget/index.js';
+import { mountReviewReliability } from './features/review-reliability/index.js';
 
 const appRoot = document.querySelector('#app');
 
@@ -56,6 +57,7 @@ const shell = createAppShell(appRoot, {
     else if (route === '/results') navigate('/recommendation');
     else if (route === '/restaurant-detail' || route === '/menu') navigate(restaurantReturnRoute);
     else if (route === '/budget') navigate('/restaurant-detail');
+    else if (route === '/review-reliability') navigate('/restaurant-detail');
     else navigate('/');
   },
   onClearSelection() {
@@ -195,6 +197,9 @@ function renderMenuRoute() {
         actionLabel: 'Kiểm tra ngân sách',
       } : null);
     },
+    onOpenReviewReliability() {
+      navigate('/review-reliability');
+    },
   });
 
   const quantity = totalSelectedQuantity();
@@ -205,6 +210,29 @@ function renderMenuRoute() {
       actionLabel: 'Kiểm tra ngân sách',
     });
   }
+}
+
+function renderReviewReliabilityRoute() {
+  selectedRestaurant ??= demoRestaurant;
+  document.title = `Food Decision - Độ tin cậy đánh giá tại ${selectedRestaurant.name}`;
+  shell.setSelection(null);
+  shell.setBackAction({ visible: true, label: 'Chi tiết quán' });
+
+  const summary = selectedRestaurant.reviewSummary ?? null;
+  const initialScenario = summary?.evidenceStatus === 'insufficient_evidence'
+    ? 'insufficient'
+    : summary?.status === 'potentially_suspicious'
+      ? 'suspicious_burst'
+      : 'normal';
+
+  activeFeature = mountReviewReliability(shell.main, {
+    restaurant: selectedRestaurant,
+    summaryData: summary,
+    initialScenario,
+    onOpenFeedback() {
+      shell.showToast('Feature Feedback chưa được tích hợp vào main.', 'info');
+    },
+  });
 }
 
 function renderBudgetRoute() {
@@ -236,6 +264,7 @@ function renderRoute() {
   else if (route === '/results') renderResultsRoute();
   else if (route === '/restaurant-detail' || route === '/menu') renderMenuRoute();
   else if (route === '/budget') renderBudgetRoute();
+  else if (route === '/review-reliability') renderReviewReliabilityRoute();
   else { navigate('/'); return; }
 
   window.scrollTo({ top: 0, behavior: 'auto' });

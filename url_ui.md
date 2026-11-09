@@ -20,12 +20,15 @@ Các URL dưới đây dùng cổng mặc định `5173`. Nếu Vite báo cổng
 | Ranked Results & Compare | <http://127.0.0.1:5173/#/results> | UC-06, UC-07: xếp hạng, giải thích và so sánh quán. Có thể mở trực tiếp bằng mock data. |
 | Restaurant Detail / Menu | <http://127.0.0.1:5173/#/restaurant-detail> | UC-03: xem menu, trạng thái xác minh và chọn món. Khi đi từ Search/Results, quán đã chọn được truyền sang màn hình này. |
 | Budget Planner | <http://127.0.0.1:5173/#/budget> | UC-04: tính tổng, chi phí mỗi người và độ phù hợp ngân sách. Khi đi từ Menu, danh sách món được giữ lại. |
+| Review Reliability | <http://127.0.0.1:5173/#/review-reliability> | UC-05: xem mức rủi ro, confidence, tín hiệu giải thích hoặc trạng thái chưa đủ bằng chứng. Khi đi từ Ranked Results, summary của quán được truyền sang màn hình này. |
 
 Luồng nên review:
 
 ```text
 Home -> Search -> Menu -> Budget
+Home -> Search -> Menu -> Review Reliability
 Home -> Recommendation -> Ranked Results -> Menu -> Budget
+Home -> Recommendation -> Ranked Results -> Menu -> Review Reliability
 ```
 
 ## 3. Trang demo độc lập của từng feature
@@ -34,6 +37,7 @@ Home -> Recommendation -> Ranked Results -> Menu -> Budget
 |---|---|
 | Menu | <http://127.0.0.1:5173/menu-demo.html> |
 | Budget | <http://127.0.0.1:5173/budget-demo.html> |
+| Review Reliability | <http://127.0.0.1:5173/wp5-demo.html> |
 | Recommendation + Ranked Results | <http://127.0.0.1:5173/wp6-demo.html> |
 
 Trang demo độc lập phù hợp để owner kiểm tra feature riêng. Khi review tính đúng của toàn hệ thống, ưu tiên các URL trong phần **Luồng tích hợp trên main**.
