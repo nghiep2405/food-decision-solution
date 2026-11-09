@@ -1,7 +1,8 @@
 import './styles/global.css';
 import { createAppShell } from './core/ui/app-shell.js';
 import { mountHome } from './features/home/index.js';
-import { mountRestaurantDiscovery } from './features/restaurant-discovery/index.js';
+import { DEMO_SCENARIOS, mountRestaurantDiscovery } from './features/restaurant-discovery/index.js';
+import { mountSearchArea } from './features/search-area/index.js';
 import { mountRecommendation } from './features/recommendation/index.js';
 import { mountResults } from './features/results/index.js';
 import { demoMenu, demoRestaurant, mountMenu } from './features/menu/index.js';
@@ -18,6 +19,7 @@ let selectedRestaurant = null;
 let currentSearchContext = null;
 let currentMenu = demoMenu;
 let selectedMenuItems = [];
+let mealRestaurantId = null;
 let restaurantReturnRoute = '/search';
 
 function currentRoute() {
@@ -47,6 +49,14 @@ function menuRestaurant(restaurant) {
 
 function totalSelectedQuantity() {
   return selectedMenuItems.reduce((total, selection) => total + Number(selection.quantity || 0), 0);
+}
+
+function prepareRestaurantMeal() {
+  selectedRestaurant ??= demoRestaurant;
+  if (mealRestaurantId === selectedRestaurant.id) return;
+  mealRestaurantId = selectedRestaurant.id;
+  currentMenu = demoMenu;
+  selectedMenuItems = [];
 }
 
 const shell = createAppShell(appRoot, {
@@ -94,6 +104,7 @@ function renderHomeRoute() {
   currentSearchContext = null;
   currentMenu = demoMenu;
   selectedMenuItems = [];
+  mealRestaurantId = null;
   shell.setSelection(null);
   shell.setBackAction({ visible: false });
   activeFeature = mountHome(shell.main, {
@@ -111,17 +122,103 @@ function renderSearchRoute() {
   selectedRestaurant = null;
   shell.setSelection(null);
   shell.setBackAction({ visible: true, label: 'Trang chủ' });
-  activeFeature = mountRestaurantDiscovery(shell.main, {
-    onSelectionChange(restaurant) {
-      selectedRestaurant = restaurant;
-      shell.setSelection(restaurant ? {
-        label: 'Quán đã chọn',
-        name: restaurant.name,
-        actionLabel: 'Xem thực đơn',
-      } : null);
-      if (restaurant) shell.showToast(`Đã chọn ${restaurant.name}.`, 'success');
-    },
+  shell.main.innerHTML = `
+    <header class="ui-page-hero">
+      <div>
+        <p class="ui-kicker">Tìm theo món</p>
+        <h1>Tìm một nơi đúng gu của bạn</h1>
+        <p class="ui-page-hero__lead">Chọn vị trí và vùng trên bản đồ, rồi tìm món bạn muốn ăn.</p>
+      </div>
+    </header>
+    <div class="search-workspace">
+      <aside class="search-workspace__panel search-workspace__filters" data-role="search-area" aria-label="Điều kiện tìm kiếm"></aside>
+      <div class="search-workspace__content" data-mobile-view="map">
+        <div class="search-workspace__switch" role="group" aria-label="Chế độ xem kết quả">
+          <button class="ui-button ui-button--outline" type="button" data-view="map" aria-pressed="true">Bản đồ</button>
+          <button class="ui-button ui-button--outline" type="button" data-view="list" aria-pressed="false">Danh sách</button>
+        </div>
+        <section class="search-workspace__panel search-workspace__map" data-role="map-area" aria-label="Bản đồ tìm quán"></section>
+        <section class="search-workspace__panel search-workspace__results" data-role="discovery" aria-labelledby="restaurant-result-title"></section>
+      </div>
+    </div>`;
+
+  const content = shell.main.querySelector('.search-workspace__content');
+  const viewButtons = [...content.querySelectorAll('[data-view]')];
+  const params = new URLSearchParams(window.location.search);
+  const requestedScenario = params.get('scenario');
+  const requestedDelay = params.get('delay');
+  const rawDelay = Number(requestedDelay);
+  const scenario = DEMO_SCENARIOS.includes(requestedScenario) ? requestedScenario : 'full';
+  const delayMs = requestedDelay !== null && Number.isFinite(rawDelay) ? Math.min(10000, Math.max(0, rawDelay)) : 250;
+  let mapResizeFrame = null;
+
+  function setMobileView(view) {
+    content.dataset.mobileView = view;
+    for (const button of viewButtons) button.setAttribute('aria-pressed', String(button.dataset.view === view));
+    window.cancelAnimationFrame(mapResizeFrame);
+    if (view === 'map') {
+      mapResizeFrame = window.requestAnimationFrame(() => {
+        searchArea.invalidateSize();
+        if (selectedRestaurant) searchArea.selectRestaurant(selectedRestaurant.id);
+      });
+    }
+  }
+
+  function selectRestaurant(restaurant, source) {
+    const id = restaurant?.id ?? null;
+    const selectionChanged = selectedRestaurant?.id !== restaurant?.id;
+    selectedRestaurant = restaurant;
+    const mobile = window.matchMedia('(max-width: 850px)').matches;
+    if (restaurant && mobile) setMobileView(source === 'map' ? 'list' : 'map');
+    discovery.selectRestaurant(id, { focus: source === 'map' });
+    if (mobile && source === 'list') searchArea.invalidateSize();
+    searchArea.selectRestaurant(id, { pan: !mobile || source === 'list' });
+    shell.setSelection(restaurant ? {
+      label: 'Quán đã chọn',
+      name: restaurant.name,
+      actionLabel: 'Xem thực đơn',
+    } : null);
+    if (restaurant && selectionChanged) shell.showToast(`Đã chọn ${restaurant.name}.`, 'success');
+  }
+
+  function openDetail(restaurant) {
+    selectedRestaurant = restaurant;
+    restaurantReturnRoute = '/search';
+    navigate('/restaurant-detail');
+  }
+
+  const discovery = mountRestaurantDiscovery(content.querySelector('[data-role="discovery"]'), {
+    scenario,
+    delayMs,
+    showSelectionBar: false,
+    onResultsChange: (restaurants) => searchArea.setRestaurants(restaurants),
+    onBusyChange: (busy) => searchArea.setBusy(busy),
+    onSelectRestaurant: (restaurant) => selectRestaurant(restaurant, 'list'),
+    onOpenDetail: openDetail,
+    onReset: () => searchArea.reset(),
   });
+  const searchArea = mountSearchArea(
+    shell.main.querySelector('[data-role="search-area"]'),
+    content.querySelector('[data-role="map-area"]'),
+    {
+      onSearch: (context) => discovery.search(context),
+      onSelectRestaurant: (restaurant) => selectRestaurant(restaurant, 'map'),
+      onOpenDetail: openDetail,
+    },
+  );
+
+  for (const button of viewButtons) {
+    button.addEventListener('click', () => setMobileView(button.dataset.view));
+  }
+  activeFeature = {
+    clearSelection: () => selectRestaurant(null, 'list'),
+    unmount() {
+      window.cancelAnimationFrame(mapResizeFrame);
+      discovery.destroy();
+      searchArea.destroy();
+    },
+  };
+  searchArea.search();
 }
 
 function renderRecommendationRoute() {
@@ -174,7 +271,7 @@ function renderResultsRoute() {
 }
 
 function renderMenuRoute() {
-  selectedRestaurant ??= demoRestaurant;
+  prepareRestaurantMeal();
   document.title = `Food Decision - ${selectedRestaurant.name}`;
   shell.setSelection(null);
   shell.setBackAction({
@@ -208,7 +305,7 @@ function renderMenuRoute() {
 }
 
 function renderBudgetRoute() {
-  selectedRestaurant ??= demoRestaurant;
+  prepareRestaurantMeal();
   document.title = `Food Decision - Ngân sách tại ${selectedRestaurant.name}`;
   shell.setSelection(null);
   shell.setBackAction({ visible: true, label: 'Thực đơn' });
