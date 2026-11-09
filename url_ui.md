@@ -15,7 +15,7 @@ Các URL dưới đây dùng cổng mặc định `5173`. Nếu Vite báo cổng
 | Giao diện | URL | Use case / cách review |
 |---|---|---|
 | Home / Mode Selection | <http://127.0.0.1:5173/#/> | Chọn Direct Search hoặc Recommendation. |
-| Direct Search / Restaurant Discovery | <http://127.0.0.1:5173/#/search> | UC-01, UC-02: lọc quán và chọn một quán. |
+| Search Area, Map và Restaurant Discovery | <http://127.0.0.1:5173/#/search> | UC-01, UC-02, UC-07: chọn GPS hoặc điểm/vùng trên bản đồ, tìm quán, đồng bộ marker với danh sách và mở chi tiết. |
 | Recommendation Request | <http://127.0.0.1:5173/#/recommendation> | UC-01: nhập sở thích, bối cảnh, vị trí và consent. |
 | Ranked Results & Compare | <http://127.0.0.1:5173/#/results> | UC-06, UC-07: xếp hạng, giải thích và so sánh quán. Có thể mở trực tiếp bằng mock data. |
 | Restaurant Detail / Menu | <http://127.0.0.1:5173/#/restaurant-detail> | UC-03: xem menu, trạng thái xác minh và chọn món. Khi đi từ Search/Results, quán đã chọn được truyền sang màn hình này. |
@@ -30,6 +30,21 @@ Home -> Search -> Menu -> Review Reliability
 Home -> Recommendation -> Ranked Results -> Menu -> Budget
 Home -> Recommendation -> Ranked Results -> Menu -> Review Reliability
 ```
+
+### Kịch bản kiểm tra Search Area và Restaurant Discovery
+
+Tham số phải đặt trước phần `#/search`:
+
+| Trạng thái | URL |
+|---|---|
+| Dữ liệu đầy đủ | <http://127.0.0.1:5173/?scenario=full#/search> |
+| Không có kết quả | <http://127.0.0.1:5173/?scenario=empty#/search> |
+| Dữ liệu một phần | <http://127.0.0.1:5173/?scenario=partial#/search> |
+| Provider error | <http://127.0.0.1:5173/?scenario=provider-error#/search> |
+| Route error | <http://127.0.0.1:5173/?scenario=route-error#/search> |
+| Loading chậm 2 giây | <http://127.0.0.1:5173/?scenario=full&delay=2000#/search> |
+
+GPS chỉ được yêu cầu sau khi người dùng bấm **Dùng vị trí của tôi**. Nếu từ chối quyền, vẫn có thể nhập tọa độ hoặc chọn điểm thủ công trên bản đồ.
 
 ## 3. Trang demo độc lập của từng feature
 

@@ -203,7 +203,10 @@ function renderSearchRoute() {
     shell.main.querySelector('[data-role="search-area"]'),
     content.querySelector('[data-role="map-area"]'),
     {
-      onSearch: (context) => discovery.search(context),
+      onSearch: (context) => {
+        currentSearchContext = context;
+        return discovery.search(context);
+      },
       onSelectRestaurant: (restaurant) => selectRestaurant(restaurant, 'map'),
       onOpenDetail: openDetail,
     },
@@ -339,13 +342,18 @@ function renderBudgetRoute() {
   shell.setBackAction({ visible: true, label: 'Thực đơn' });
 
   const recommendationBudget = currentSearchContext?.budget;
+  const directBudgetPerPerson = currentSearchContext?.mode === 'direct'
+    ? currentSearchContext.budgetPerPerson
+    : null;
   activeFeature = mountBudget(shell.main, {
     restaurant: menuRestaurant(selectedRestaurant),
     menu: currentMenu,
     initialSelections: selectedMenuItems,
     initialDinerCount: currentSearchContext?.dinerCount ?? 2,
-    initialBudget: recommendationBudget?.amount ?? 200000,
-    initialBudgetMode: recommendationBudget?.mode === 'perPerson' ? 'perPerson' : 'total',
+    initialBudget: recommendationBudget?.amount ?? directBudgetPerPerson ?? 200000,
+    initialBudgetMode: recommendationBudget
+      ? (recommendationBudget.mode === 'perPerson' ? 'perPerson' : 'total')
+      : (directBudgetPerPerson != null ? 'perPerson' : 'total'),
   });
 }
 
