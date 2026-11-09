@@ -1,66 +1,69 @@
 # Food Decision Frontend
 
-Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Phiên bản hiện tại chỉ triển khai demo feature `restaurant-discovery`; chưa kết nối backend hoặc API bên ngoài.
+Frontend dùng HTML, CSS và JavaScript ES modules, chạy bằng Vite `vanilla`. Bản hiện tại đã tích hợp Home, Restaurant Discovery, Recommendation, Ranked Results, Menu và Budget bằng dữ liệu mock.
 
-## Yêu cầu
+## Yêu cầu và cách chạy
 
 - Node.js 20.19+ hoặc 22.12+.
 - npm đi kèm Node.js.
-
-## Chạy ở chế độ phát triển
-
-Mở PowerShell tại thư mục `frontend` rồi chạy:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Mở địa chỉ Vite in ra trong terminal, mặc định là <http://127.0.0.1:5173>.
+Mở địa chỉ Vite in trong terminal, mặc định là <http://127.0.0.1:5173>. Nếu cổng đã được dùng, dừng terminal cũ bằng `Ctrl+C` hoặc mở địa chỉ của server đang chạy.
 
-## Build và xem bản build
+Build và xem bản build:
 
 ```powershell
 npm run build
 npm run preview
 ```
 
-Bản build nằm trong `dist/`; preview mặc định tại <http://127.0.0.1:4173>.
+## Luồng review UI của Nghiệp
 
-## Cách review demo
+1. Tại Home, đổi qua lại giữa `Tìm theo món` và `Gợi ý món phù hợp`; kiểm tra card được chọn và nội dung nút tiếp tục.
+2. Chọn `Tìm theo món`, tiếp tục và kiểm tra header có nút quay lại.
+3. Tìm `bún bò`, `cơm`, `chay` hoặc để trống; đổi khu vực, bán kính và ngân sách.
+4. Chọn một quán; kiểm tra toast và selection bar dùng chung.
+5. Nhấn `Xem bước tiếp` để kiểm tra điểm bàn giao Menu/Budget, sau đó quay lại kết quả.
+6. Từ Home chọn `Gợi ý món phù hợp` để kiểm tra điểm bàn giao Recommendation.
+7. Nhấn `Dữ liệu demo` hoặc `Tìm hiểu`; đóng modal bằng nút, click nền và phím `Esc`.
+8. Kiểm tra bàn phím và layout tại 320px, 560px, 850px và desktop.
 
-1. Tìm `bún bò`, `cơm`, `chay` hoặc để trống để xem tất cả.
-2. Đổi khu vực, bán kính và ngân sách mỗi người.
-3. Thử các cách sắp xếp: đề xuất, gần nhất và rating cao.
-4. Kiểm tra quán thiếu giá vẫn xuất hiện với cảnh báo, thay vì bị coi là chắc chắn phù hợp ngân sách.
-5. Nhấn **Chọn quán** để kiểm tra trạng thái lựa chọn.
-6. Thu nhỏ cửa sổ để kiểm tra giao diện responsive.
+## Route tích hợp
 
-## Cấu trúc
+| Hash route | Nội dung |
+|---|---|
+| `#/` | Home / Mode Selection |
+| `#/search` | Restaurant Discovery demo |
+| `#/recommendation` | Recommendation Request |
+| `#/results` | Ranked Results & Compare |
+| `#/restaurant-detail` hoặc `#/menu` | Restaurant Detail / Menu |
+| `#/budget` | Budget Planner |
+
+Danh sách URL đầy đủ và luồng review được ghi tại `../url_ui.md`.
+
+## Cấu trúc chính
 
 ```text
-frontend/
-├── index.html
-├── package.json
-├── vite.config.js
-├── public/
-│   ├── favicon.svg
-│   └── data/restaurants.json
-└── src/
-    ├── app.js
-    ├── core/
-    │   ├── api-client.js
-    │   ├── config.js
-    │   └── dom.js
-    ├── features/
-    │   ├── search-area/
-    │   ├── restaurant-discovery/   # demo đã triển khai
-    │   ├── menu/
-    │   ├── budget/
-    │   ├── review-reliability/
-    │   ├── recommendation/
-    │   └── results/
-    └── styles/global.css
+src/
+├── app.js                         # route/view state và tích hợp feature
+├── core/
+│   ├── ui/
+│   │   ├── app-shell.js           # header, modal, toast, loading, selection bar
+│   │   ├── app-shell.css
+│   │   ├── integration-stage.js   # điểm bàn giao tạm thời
+│   │   └── integration-stage.css
+│   ├── api-client.js
+│   ├── config.js
+│   └── dom.js
+├── features/
+│   ├── home/                      # UI của Nghiệp
+│   ├── restaurant-discovery/      # demo đã tích hợp vào AppShell
+│   └── ...
+└── styles/global.css              # design tokens và reset
 ```
 
 ## Quy tắc dependency
@@ -71,4 +74,4 @@ core -X-> feature
 feature A -X-> file nội bộ của feature B
 ```
 
-Khi backend được triển khai, chỉ thay nguồn dữ liệu trong `restaurant-discovery/api.js`; `view.js` không tự viết URL hoặc gọi `fetch`.
+Feature phát dữ liệu qua callback công khai. `app.js` giữ route và state dùng chung; không gọi API hay xử lý thuật toán nghiệp vụ.

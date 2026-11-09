@@ -17,6 +17,16 @@ Demo tìm quán bằng dữ liệu JSON cục bộ. Feature này độc lập v�
 - Trạng thái xác minh menu và cảnh báo khi giá/menu không chắc chắn.
 - Trạng thái quán được người dùng chọn.
 
+## Public API
+
+```js
+mountRestaurantDiscovery(container, {
+  onSelectionChange(restaurantOrNull),
+})
+```
+
+Feature trả về `clearSelection()` để AppShell điều khiển selection bar dùng chung. Header, modal, toast và selection bar không nằm trong feature này.
+
 ## Files
 
 - `index.js`: public export để `app.js` mount feature.
