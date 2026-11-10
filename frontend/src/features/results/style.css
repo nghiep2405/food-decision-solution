@@ -700,3 +700,52 @@
     display: grid;
   }
 }
+
+
+
+/* MVP-03: Ranked Results mobile responsiveness */
+
+@media (max-width: 560px) {
+  .results-toolbar,
+  .results-toolbar__controls,
+  .results-control-group {
+    min-width: 0;
+  }
+
+  .results-toolbar__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .results-control-group select,
+  .results-control-group input[type="search"] {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .results-toggle-label {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .results-toggle-label input {
+    flex-shrink: 0;
+  }
+
+  .results-notice {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .results-notice .results-btn {
+    width: 100%;
+  }
+
+  .results-explanation__heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
