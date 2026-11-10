@@ -1,6 +1,6 @@
 # Food Decision Backend
 
-Backend dùng Python và FastAPI. Phiên bản hiện tại triển khai demo feature `restaurant_discovery` bằng dữ liệu JSON cục bộ; chưa gọi map API, OCR, database hoặc agent/LLM.
+Backend dùng Python và FastAPI. `restaurant_discovery` hiện vẫn chạy bằng JSON demo để giữ luồng cũ ổn định; Data Foundation mới cung cấp SQLite schema, seed fixtures, contracts và repository để các feature MVP tích hợp tiếp theo.
 
 ## Yêu cầu
 
@@ -63,6 +63,18 @@ Quán thiếu giá vẫn có thể xuất hiện và phải mang warning; backen
 python -m pytest
 ```
 
+## Khởi tạo dữ liệu MVP
+
+Tạo lại SQLite database từ schema và fixture synthetic:
+
+```powershell
+python -m app.data.seed_db --reset
+```
+
+Database được tạo tại `backend/data/food_decision.db` và không commit vào Git. Có thể đặt đường dẫn khác bằng `--database` hoặc biến `FOOD_DECISION_DB_PATH`.
+
+Xem `../data_usage_instruction.md` và `../mock_data_instruction.md` trước khi dùng hoặc thay fixture.
+
 ## Cấu trúc
 
 ```text
@@ -75,6 +87,7 @@ backend/
 │   │   ├── config.py
 │   │   ├── errors.py
 │   │   └── http_client.py
+│   ├── data/                       # SQLite schema, contracts và repositories
 │   ├── features/
 │   │   ├── restaurant_discovery/   # demo đã triển khai
 │   │   ├── search_area/

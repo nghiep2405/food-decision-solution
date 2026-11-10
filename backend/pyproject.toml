@@ -25,6 +25,7 @@ include = ["app*"]
 
 [tool.setuptools.package-data]
 "app.features.restaurant_discovery" = ["data/*.json"]
+"app.data" = ["schema.sql"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

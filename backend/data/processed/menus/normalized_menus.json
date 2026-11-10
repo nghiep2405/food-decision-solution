@@ -1,0 +1,251 @@
+[
+  {
+    "id": "menu-quan-goc-hue-v1",
+    "restaurant_id": "quan-goc-hue",
+    "source_type": "synthetic_fixture",
+    "verification_status": "verified",
+    "confidence": 0.98,
+    "effective_at": "2026-11-08T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Structured synthetic menu for development only.",
+    "items": [
+      {
+        "id": "quan-goc-hue-bun-bo",
+        "category": "Món chính",
+        "original_name": "Bún bò Huế",
+        "normalized_name": "bun bo hue",
+        "description": "Fixture minh họa, không phải menu thật.",
+        "availability": "available",
+        "confidence": 0.98,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "quan-goc-hue-bun-bo-thuong", "name": "Tô thường", "price": 65000, "price_min": null, "price_max": null, "confidence": 0.98, "verification_status": "verified"},
+          {"id": "quan-goc-hue-bun-bo-dac-biet", "name": "Tô đặc biệt", "price": 80000, "price_min": null, "price_max": null, "confidence": 0.98, "verification_status": "verified"}
+        ]
+      },
+      {
+        "id": "quan-goc-hue-banh-beo",
+        "category": "Món phụ",
+        "original_name": "Bánh bèo",
+        "normalized_name": "banh beo",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.96,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "quan-goc-hue-banh-beo-phan", "name": "Một phần", "price": 45000, "price_min": null, "price_max": null, "confidence": 0.96, "verification_status": "verified"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-bep-nha-an-v1",
+    "restaurant_id": "bep-nha-an",
+    "source_type": "synthetic_fixture",
+    "verification_status": "verified",
+    "confidence": 0.97,
+    "effective_at": "2026-11-08T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Structured synthetic menu for development only.",
+    "items": [
+      {
+        "id": "bep-nha-an-com-ga",
+        "category": "Món chính",
+        "original_name": "Cơm gà Hội An",
+        "normalized_name": "com ga hoi an",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.97,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "bep-nha-an-com-ga-phan", "name": "Một phần", "price": 95000, "price_min": null, "price_max": null, "confidence": 0.97, "verification_status": "verified"}
+        ]
+      },
+      {
+        "id": "bep-nha-an-com-suon",
+        "category": "Món chính",
+        "original_name": "Cơm sườn",
+        "normalized_name": "com suon",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.97,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "bep-nha-an-com-suon-phan", "name": "Một phần", "price": 85000, "price_min": null, "price_max": null, "confidence": 0.97, "verification_status": "verified"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-la-xanh-v1",
+    "restaurant_id": "la-xanh-bistro",
+    "source_type": "synthetic_fixture",
+    "verification_status": "verified",
+    "confidence": 0.95,
+    "effective_at": "2026-11-07T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Structured synthetic menu for development only.",
+    "items": [
+      {
+        "id": "la-xanh-com-chay",
+        "category": "Món chính",
+        "original_name": "Cơm chay",
+        "normalized_name": "com chay",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.95,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "la-xanh-com-chay-phan", "name": "Một phần", "price": 90000, "price_min": null, "price_max": null, "confidence": 0.95, "verification_status": "verified"}
+        ]
+      },
+      {
+        "id": "la-xanh-bun-hue-chay",
+        "category": "Món chính",
+        "original_name": "Bún Huế chay",
+        "normalized_name": "bun hue chay",
+        "description": null,
+        "availability": "unknown",
+        "confidence": 0.85,
+        "verification_status": "unverified",
+        "variants": [
+          {"id": "la-xanh-bun-hue-chay-phan", "name": "Một phần", "price": null, "price_min": 75000, "price_max": 95000, "confidence": 0.72, "verification_status": "unverified"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-bun-bo-ba-nam-v1",
+    "restaurant_id": "bun-bo-ba-nam",
+    "source_type": "synthetic_fixture",
+    "verification_status": "outdated",
+    "confidence": 0.62,
+    "effective_at": "2026-08-12T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Old synthetic menu used to test stale-price warnings.",
+    "items": [
+      {
+        "id": "bun-bo-ba-nam-thuong",
+        "category": "Món chính",
+        "original_name": "Bún bò tái",
+        "normalized_name": "bun bo tai",
+        "description": null,
+        "availability": "unknown",
+        "confidence": 0.62,
+        "verification_status": "outdated",
+        "variants": [
+          {"id": "bun-bo-ba-nam-thuong-phan", "name": "Một tô", "price": 58000, "price_min": null, "price_max": null, "confidence": 0.62, "verification_status": "outdated"}
+        ]
+      },
+      {
+        "id": "bun-bo-ba-nam-dac-biet",
+        "category": "Món chính",
+        "original_name": "Bún bò đặc biệt",
+        "normalized_name": "bun bo dac biet",
+        "description": null,
+        "availability": "unknown",
+        "confidence": 0.58,
+        "verification_status": "outdated",
+        "variants": [
+          {"id": "bun-bo-ba-nam-dac-biet-phan", "name": "Một tô", "price": null, "price_min": 65000, "price_max": 80000, "confidence": 0.55, "verification_status": "outdated"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-com-tam-pho-v1",
+    "restaurant_id": "com-tam-pho",
+    "source_type": "synthetic_fixture",
+    "verification_status": "verified",
+    "confidence": 0.96,
+    "effective_at": "2026-11-08T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Structured synthetic menu for development only.",
+    "items": [
+      {
+        "id": "com-tam-pho-suon-bi",
+        "category": "Món chính",
+        "original_name": "Cơm tấm sườn bì",
+        "normalized_name": "com tam suon bi",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.96,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "com-tam-pho-suon-bi-phan", "name": "Một phần", "price": 62000, "price_min": null, "price_max": null, "confidence": 0.96, "verification_status": "verified"}
+        ]
+      },
+      {
+        "id": "com-tam-pho-ga",
+        "category": "Món chính",
+        "original_name": "Cơm tấm gà",
+        "normalized_name": "com tam ga",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.94,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "com-tam-pho-ga-phan", "name": "Một phần", "price": 68000, "price_min": null, "price_max": null, "confidence": 0.94, "verification_status": "verified"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-pho-sang-mai-v1",
+    "restaurant_id": "pho-sang-mai",
+    "source_type": "synthetic_fixture",
+    "verification_status": "verified",
+    "confidence": 0.92,
+    "effective_at": "2026-11-08T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Structured synthetic menu for development only.",
+    "items": [
+      {
+        "id": "pho-sang-mai-tai",
+        "category": "Món chính",
+        "original_name": "Phở tái",
+        "normalized_name": "pho tai",
+        "description": null,
+        "availability": "available",
+        "confidence": 0.92,
+        "verification_status": "verified",
+        "variants": [
+          {"id": "pho-sang-mai-tai-nho", "name": "Tô nhỏ", "price": 50000, "price_min": null, "price_max": null, "confidence": 0.92, "verification_status": "verified"},
+          {"id": "pho-sang-mai-tai-lon", "name": "Tô lớn", "price": 65000, "price_min": null, "price_max": null, "confidence": 0.92, "verification_status": "verified"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "menu-mi-quang-song-thu-v1",
+    "restaurant_id": "mi-quang-song-thu",
+    "source_type": "synthetic_fixture",
+    "verification_status": "unverified",
+    "confidence": 0.75,
+    "effective_at": "2026-10-20T00:00:00Z",
+    "created_at": "2026-11-09T00:00:00Z",
+    "is_active": true,
+    "notes": "Synthetic partial menu used to test missing-price states.",
+    "items": [
+      {
+        "id": "mi-quang-song-thu-ga",
+        "category": "Món chính",
+        "original_name": "Mì Quảng gà",
+        "normalized_name": "mi quang ga",
+        "description": null,
+        "availability": "unknown",
+        "confidence": 0.75,
+        "verification_status": "unverified",
+        "variants": [
+          {"id": "mi-quang-song-thu-ga-phan", "name": "Một phần", "price": null, "price_min": null, "price_max": null, "confidence": 0.55, "verification_status": "unknown"}
+        ]
+      }
+    ]
+  }
+]

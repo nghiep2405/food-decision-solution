@@ -12,3 +12,7 @@ htmlcov/
 
 *.log
 .DS_Store
+
+data/*.db
+data/*.db-*
+.tmp/

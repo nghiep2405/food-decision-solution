@@ -1,0 +1,310 @@
+[
+  {
+    "id": "quan-goc-hue",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-001",
+    "name": "Quán Góc Huế",
+    "address_line": "42 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 1",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7693,
+    "longitude": 106.6992,
+    "phone": null,
+    "rating": 4.6,
+    "review_count": 428,
+    "price_level": 2,
+    "data_status": "verified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-11-08T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "07:00", "close_time": "21:30", "status": "known"},
+      {"weekday": 6, "open_time": "07:00", "close_time": "22:00", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 1.0},
+      {"type": "dish_category", "value": "noodle", "confidence": 1.0},
+      {"type": "flavor", "value": "spicy", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "bep-nha-an",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-002",
+    "name": "Bếp Nhà An",
+    "address_line": "118 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 3",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7758,
+    "longitude": 106.6875,
+    "phone": null,
+    "rating": 4.8,
+    "review_count": 265,
+    "price_level": 3,
+    "data_status": "verified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-11-08T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "10:00", "close_time": "22:00", "status": "known"},
+      {"weekday": 6, "open_time": "10:00", "close_time": "22:30", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 1.0},
+      {"type": "occasion", "value": "group", "confidence": 0.9},
+      {"type": "dish_category", "value": "rice", "confidence": 1.0}
+    ]
+  },
+  {
+    "id": "la-xanh-bistro",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-003",
+    "name": "Lá Xanh Bistro",
+    "address_line": "15 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 1",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7803,
+    "longitude": 106.7047,
+    "phone": null,
+    "rating": 4.7,
+    "review_count": 189,
+    "price_level": 3,
+    "data_status": "verified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-11-07T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "09:30", "close_time": "21:00", "status": "known"},
+      {"weekday": 6, "open_time": null, "close_time": null, "status": "closed"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vegetarian", "confidence": 1.0},
+      {"type": "diet", "value": "vegetarian", "confidence": 1.0},
+      {"type": "occasion", "value": "quiet", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "bun-bo-ba-nam",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-004",
+    "name": "Bún Bò Bà Năm",
+    "address_line": "76 Đường Minh Họa",
+    "ward": null,
+    "district": "Bình Thạnh",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.8025,
+    "longitude": 106.7146,
+    "phone": null,
+    "rating": 4.4,
+    "review_count": 612,
+    "price_level": 2,
+    "data_status": "stale",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-08-12T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": null, "close_time": null, "status": "unknown"},
+      {"weekday": 6, "open_time": null, "close_time": null, "status": "unknown"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 0.9},
+      {"type": "dish_category", "value": "noodle", "confidence": 1.0},
+      {"type": "flavor", "value": "spicy", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "com-tam-pho",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-005",
+    "name": "Cơm Tấm Phố",
+    "address_line": "203 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 3",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7736,
+    "longitude": 106.6901,
+    "phone": null,
+    "rating": 4.3,
+    "review_count": 344,
+    "price_level": 2,
+    "data_status": "verified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-11-08T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "06:30", "close_time": "21:00", "status": "known"},
+      {"weekday": 6, "open_time": "06:30", "close_time": "21:00", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 1.0},
+      {"type": "dish_category", "value": "rice", "confidence": 1.0},
+      {"type": "occasion", "value": "quick-lunch", "confidence": 0.9}
+    ]
+  },
+  {
+    "id": "quan-nho-ven-song",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-006",
+    "name": "Quán Nhỏ Ven Sông",
+    "address_line": "9A Đường Minh Họa",
+    "ward": null,
+    "district": "Bình Thạnh",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.8141,
+    "longitude": 106.7194,
+    "phone": null,
+    "rating": 4.5,
+    "review_count": 97,
+    "price_level": null,
+    "data_status": "partial",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": null,
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": null, "close_time": null, "status": "unknown"},
+      {"weekday": 6, "open_time": null, "close_time": null, "status": "unknown"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "seafood", "confidence": 0.8},
+      {"type": "occasion", "value": "group", "confidence": 0.8}
+    ]
+  },
+  {
+    "id": "pho-sang-mai",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-007",
+    "name": "Phở Sáng Mai",
+    "address_line": "31 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 5",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7562,
+    "longitude": 106.6808,
+    "phone": null,
+    "rating": 4.2,
+    "review_count": 156,
+    "price_level": 2,
+    "data_status": "verified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-11-08T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "06:00", "close_time": "11:00", "status": "known"},
+      {"weekday": 6, "open_time": "06:00", "close_time": "11:00", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 1.0},
+      {"type": "dish_category", "value": "noodle", "confidence": 1.0},
+      {"type": "occasion", "value": "breakfast", "confidence": 1.0}
+    ]
+  },
+  {
+    "id": "mi-quang-song-thu",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-008",
+    "name": "Mì Quảng Sông Thu",
+    "address_line": "54 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 5",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7585,
+    "longitude": 106.675,
+    "phone": null,
+    "rating": 4.4,
+    "review_count": 83,
+    "price_level": 2,
+    "data_status": "unverified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-10-20T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "07:00", "close_time": "20:30", "status": "known"},
+      {"weekday": 6, "open_time": "07:00", "close_time": "20:30", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "central-vietnam", "confidence": 0.9},
+      {"type": "dish_category", "value": "noodle", "confidence": 1.0}
+    ]
+  },
+  {
+    "id": "chay-an-lac",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-009",
+    "name": "Chay An Lạc",
+    "address_line": "88 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 5",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7661,
+    "longitude": 106.6815,
+    "phone": null,
+    "rating": null,
+    "review_count": null,
+    "price_level": 2,
+    "data_status": "partial",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": null,
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": "09:00", "close_time": "20:00", "status": "known"},
+      {"weekday": 6, "open_time": "09:00", "close_time": "20:00", "status": "known"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vegetarian", "confidence": 1.0},
+      {"type": "diet", "value": "vegan-friendly", "confidence": 0.8},
+      {"type": "occasion", "value": "quiet", "confidence": 0.7}
+    ]
+  },
+  {
+    "id": "banh-canh-co-ba",
+    "external_provider": "synthetic",
+    "external_id": "synthetic-010",
+    "name": "Bánh Canh Cô Ba",
+    "address_line": "12 Đường Minh Họa",
+    "ward": null,
+    "district": "Quận 5",
+    "city": "TP. Hồ Chí Minh",
+    "latitude": 10.7528,
+    "longitude": 106.6847,
+    "phone": null,
+    "rating": 4.1,
+    "review_count": 41,
+    "price_level": 1,
+    "data_status": "unverified",
+    "source_name": "synthetic_fixture",
+    "source_url": null,
+    "collected_at": "2026-11-09T00:00:00Z",
+    "updated_at": "2026-10-12T00:00:00Z",
+    "is_active": 1,
+    "hours": [
+      {"weekday": 0, "open_time": null, "close_time": null, "status": "unknown"},
+      {"weekday": 6, "open_time": null, "close_time": null, "status": "unknown"}
+    ],
+    "tags": [
+      {"type": "cuisine", "value": "vietnamese", "confidence": 0.8},
+      {"type": "dish_category", "value": "noodle", "confidence": 1.0},
+      {"type": "occasion", "value": "quick-lunch", "confidence": 0.8}
+    ]
+  }
+]
