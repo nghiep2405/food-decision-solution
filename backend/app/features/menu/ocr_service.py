@@ -1,6 +1,11 @@
 
 from uuid import uuid4
 
+from io import BytesIO
+
+from PIL import Image
+import pytesseract
+
 from app.data.contracts import (
     MenuItem,
     MenuVariant,
@@ -89,3 +94,26 @@ def normalize_menu_output(
         verification_status=VerificationStatus.UNVERIFIED,
         items=items,
     )
+    def run_tesseract_ocr(image_bytes: bytes) -> str:
+    """
+    Đọc chữ từ ảnh menu bằng Tesseract.
+    Hỗ trợ tiếng Việt và tiếng Anh.
+    """
+    if not image_bytes:
+        raise ValueError("Ảnh menu không được để trống.")
+
+    try:
+        image = Image.open(BytesIO(image_bytes))
+        image = image.convert("RGB")
+
+        text = pytesseract.image_to_string(
+            image,
+            lang="vie+eng"
+        )
+
+        return text.strip()
+
+    except Exception as error:
+        raise ValueError(
+            f"Không thể đọc nội dung ảnh menu: {error}"
+        ) from error
