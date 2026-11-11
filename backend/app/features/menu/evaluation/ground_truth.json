@@ -22,7 +22,7 @@
     },
     {
       "image": "menu_02_synthetic.png",
-      "restaurant_id": "quan-an-viet",
+      "restaurant_id": "bep-nha-an",
       "source_type": "synthetic_fixture",
       "items": [
         {"dishName": "Phở bò", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
@@ -44,7 +44,7 @@
     },
     {
       "image": "menu_03_synthetic.png",
-      "restaurant_id": "quan-ngon-ha-noi",
+      "restaurant_id": "com-tam-pho",
       "source_type": "synthetic_fixture",
       "items": [
         {"dishName": "Phở bò tái", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
