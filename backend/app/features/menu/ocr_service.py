@@ -232,9 +232,13 @@ def extract_menu_visual(
 
     start = time.perf_counter()
 
+    endpoint = api_url.rstrip("/")
+    if not endpoint.endswith("/chat/completions"):
+        endpoint += "/chat/completions"
+
     with httpx.Client(timeout=60.0) as client:
         response = client.post(
-            api_url,
+            endpoint,
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
