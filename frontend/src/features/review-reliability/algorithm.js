@@ -1,54 +1,77 @@
 // src/features/review-reliability/algorithm.js
 
 /**
- * Hàm này dùng để chuẩn hóa dữ liệu trả về từ API Backend (Python FastAPI)
- * Backend của bạn sẽ chạy NLP (TF-IDF), Pandas (Metadata) và trả về các flags.
- * Hàm này tính ra riskLevel và reasons chuẩn theo Data Contract.
+ * Giả lập logic phân tích của Backend khi chạy ở chế độ Demo (không gọi API).
+ * Hàm này trả về đối tượng khớp 100% với Data Contract `ReviewReliabilitySummary`.
  */
-export function mapBackendAnalysisToSummary(backendResponse) {
-  if (!backendResponse || backendResponse.total_analyzed < 3) {
+export function analyzeReviewReliabilityMock(reviews = [], method = 'combined') {
+  const analyzedCount = reviews?.length || 0;
+  const today = new Date().toISOString(); // Chuẩn ISO 8601 theo Data Contract
+
+  const minRequired = method === 'metadataAnomaly' || method === 'combined' ? 4 : 2;
+  if (analyzedCount < minRequired) {
     return {
       status: 'insufficient_evidence',
       riskLevel: null,
       confidence: null,
-      reasons: ['Chưa đủ số lượng đánh giá có văn bản dài để phân tích (cần tối thiểu 3).'],
-      analyzedCount: backendResponse?.total_analyzed || 0,
+      reasons: [],
+      methods: [method],
+      analyzedCount,
       evidenceStatus: 'insufficient_evidence',
-      updatedAt: new Date().toISOString().split('T')[0],
+      analyzedAt: today,
     };
   }
 
   const reasons = [];
   let riskScore = 0;
 
-  if (backendResponse.text_rating_conflicts > 0) {
-    reasons.push(`Phát hiện ${backendResponse.text_rating_conflicts} đánh giá có mâu thuẫn giữa nội dung và điểm số (Text-Rating Conflict).`);
+  // 1. Giả lập thuật toán phát hiện mâu thuẫn Text-Rating
+  const negativeWords = ['tệ', 'dở', 'chán', 'thất vọng', 'kém'];
+  let conflictCount = 0;
+  reviews.forEach(r => {
+    const text = (r.text || '').toLowerCase();
+    // Chấm sao cao nhưng lại dùng từ tiêu cực
+    if (r.rating >= 4 && negativeWords.some(w => text.includes(w))) {
+      conflictCount++;
+    }
+  });
+
+  if (conflictCount > 0) {
+    reasons.push(`Có ${conflictCount} đánh giá mang mâu thuẫn giữa nội dung và điểm số.`);
     riskScore += 2;
   }
 
-  if (backendResponse.high_similarity_clusters > 0) {
-    reasons.push(`Có ${backendResponse.high_similarity_clusters} cụm đánh giá trùng lặp nội dung bất thường (Text Mining Similarity).`);
+  // 2. Giả lập thuật toán Text Similarity (Trùng lặp nội dung)
+  const texts = reviews.map(r => (r.text || '').trim().toLowerCase()).filter(t => t.length > 5);
+  const uniqueTexts = new Set(texts);
+  const duplicateCount = texts.length - uniqueTexts.size;
+  
+  if (duplicateCount >= 2) {
+    reasons.push('Phát hiện các cụm đánh giá có nội dung trùng lặp hoặc giống nhau bất thường.');
     riskScore += 3;
   }
-
-  if (backendResponse.burst_patterns_detected) {
-    reasons.push('Phát hiện dấu hiệu đăng tải đánh giá tăng đột biến trong thời gian ngắn (Metadata Pattern).');
+  
+  // 3. Giả lập nhận diện Burst Pattern (Đăng dồn dập)
+  if (analyzedCount >= 5 && duplicateCount >= 3) {
+    reasons.push('Thời gian đăng các bài đánh giá quá sát nhau so với thông thường.');
     riskScore += 2;
   }
 
+  // Xếp loại rủi ro
   let riskLevel = 'low';
   let status = 'normal';
-  let confidence = 0.85;
+  let confidence = 0.95;
 
   if (riskScore >= 4) {
     riskLevel = 'high';
     status = 'potentially_suspicious';
-    confidence = 0.90;
+    confidence = 0.88;
   } else if (riskScore > 0) {
     riskLevel = 'medium';
     status = 'potentially_suspicious';
     confidence = 0.75;
   } else {
+    // Fix 2: Khôi phục lại lý do cho kịch bản Bình Thường để không bị khung trắng
     reasons.push('Phân bố đánh giá tự nhiên, nội dung đa dạng và nhất quán.');
   }
 
@@ -57,38 +80,9 @@ export function mapBackendAnalysisToSummary(backendResponse) {
     riskLevel,
     confidence,
     reasons,
-    analyzedCount: backendResponse.total_analyzed,
+    methods: method === 'combined' ? ['textSimilarity', 'metadataAnomaly'] : [method],
+    analyzedCount,
     evidenceStatus: 'sufficient',
-    updatedAt: new Date().toISOString().split('T')[0],
+    analyzedAt: today,
   };
-}
-
-export function analyzeReviewReliabilityMock(reviews = []) {
-  if (!reviews || reviews.length < 3) {
-    return mapBackendAnalysisToSummary(null);
-  }
-
-  // Giả lập backend response
-  const mockBackendResponse = {
-    total_analyzed: reviews.length,
-    text_rating_conflicts: 0,
-    high_similarity_clusters: 0,
-    burst_patterns_detected: false
-  };
-
-  const negativeWords = ['tệ', 'dở', 'chán', 'thất vọng', 'kém'];
-  reviews.forEach(r => {
-    const text = (r.text || '').toLowerCase();
-    if (r.rating === 5 && negativeWords.some(w => text.includes(w))) {
-      mockBackendResponse.text_rating_conflicts++;
-    }
-  });
-
-  const texts = reviews.map(r => (r.text || '').trim().toLowerCase()).filter(t => t.length > 5);
-  const uniqueTexts = new Set(texts);
-  if (texts.length - uniqueTexts.size >= 2) {
-    mockBackendResponse.high_similarity_clusters = 1;
-  }
-
-  return mapBackendAnalysisToSummary(mockBackendResponse);
 }
