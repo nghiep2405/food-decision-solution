@@ -38,11 +38,11 @@ def get_restaurant_menu(restaurant_id: str):
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
-UPLOAD_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "data"
-    / "menu_uploads"
-)
+
+from app.data.database import DATA_ROOT
+
+UPLOAD_DIR = DATA_ROOT / "menu_uploads"
+
 
 
 @router.post("/menus/ocr", status_code=201)
