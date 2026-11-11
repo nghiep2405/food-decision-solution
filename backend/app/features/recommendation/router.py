@@ -24,7 +24,7 @@ def get_recommendation_service() -> RecommendationService:
     response_model=RankedResult,
     summary="Generate and rank restaurant candidates for a SearchContext",
 )
-async def create_recommendations(
+def create_recommendations(
     search_context: SearchContext,
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RankedResult:
@@ -38,7 +38,7 @@ async def create_recommendations(
     response_model=RecommendationEnvelope,
     summary="Generate recommendations with diagnostic execution metadata",
 )
-async def create_recommendations_detailed(
+def create_recommendations_detailed(
     search_context: SearchContext,
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> RecommendationEnvelope:
@@ -52,7 +52,7 @@ async def create_recommendations_detailed(
     response_model=StrategyComparisonReport,
     summary="Compare local-first vs. external-first candidate generation strategies",
 )
-async def get_strategy_comparison(
+def get_strategy_comparison(
     service: RecommendationService = Depends(get_recommendation_service),
 ) -> StrategyComparisonReport:
     """Run the standard MVP-05 benchmark query suite across local and external candidate strategies."""

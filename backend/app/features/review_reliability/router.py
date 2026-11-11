@@ -20,7 +20,7 @@ def get_review_reliability_service() -> ReviewReliabilityService:
     summary="Phân tích độ tin cậy của đánh giá nhà hàng",
     description="Nhận ID nhà hàng và phương thức phân tích, chạy thuật toán phát hiện bất thường và trả về mức độ rủi ro kèm giải thích từ AI Agent."
 )
-async def analyze_reviews(
+def analyze_reviews(
     request: ReviewAnalyzeRequest,
     service: ReviewReliabilityService = Depends(get_review_reliability_service)
 ) -> ReviewAnalyzeResponse:

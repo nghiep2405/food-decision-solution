@@ -305,6 +305,7 @@ function renderRestaurantCard(item, { selectedId, comparedIds }) {
 export function createResultsView({
   searchContext: initialSearchContext = null,
   candidates: initialCandidates = MOCK_CANDIDATE_RESTAURANTS,
+  rankedItems: initialRankedItems = null,
   initialScenario = 'recommendation',
   onSelectRestaurant,
   onOpenDetail,
@@ -316,11 +317,13 @@ export function createResultsView({
   let searchContext =
     initialSearchContext ?? SCENARIO_CONTEXTS[initialScenario] ?? SCENARIO_CONTEXTS.recommendation;
   let candidates = [...initialCandidates];
+  const backendRankedItems = Array.isArray(initialRankedItems) ? [...initialRankedItems] : null;
   let sortBy = 'recommended';
   let includeUnverified = true;
   let viewState = 'default'; // 'default' | 'loading' | 'empty' | 'partial' | 'missing-signal' | 'error'
   let selectedId = null;
-  let comparedIds = ['quan-goc-hue', 'bep-nha-an'];
+  let comparedIds = backendRankedItems?.slice(0, 2).map((item) => item.restaurant.id)
+    ?? ['quan-goc-hue', 'bep-nha-an'];
   let compareBannerMessage = null;
 
   function getActiveCandidates() {
@@ -341,6 +344,39 @@ export function createResultsView({
       }));
     }
     return candidates;
+  }
+
+  function buildRankedResults() {
+    const useBackendRanking =
+      activeScenario === 'custom' &&
+      backendRankedItems &&
+      (viewState === 'default' || viewState === 'partial');
+
+    if (!useBackendRanking) {
+      return rankRestaurantCandidates(getActiveCandidates(), searchContext, {
+        sortBy,
+        includeUnverified,
+      });
+    }
+
+    const ranked = backendRankedItems.filter(
+      (item) => includeUnverified || !item.isUnverifiedAlternative,
+    );
+    ranked.sort((left, right) => {
+      if (sortBy === 'distance') {
+        return (left.restaurant.distanceKm ?? Number.POSITIVE_INFINITY)
+          - (right.restaurant.distanceKm ?? Number.POSITIVE_INFINITY);
+      }
+      if (sortBy === 'rating') {
+        return (right.restaurant.rating ?? -1) - (left.restaurant.rating ?? -1);
+      }
+      if (sortBy === 'price') {
+        return (left.restaurant.estimatedPricePerPerson ?? Number.POSITIVE_INFINITY)
+          - (right.restaurant.estimatedPricePerPerson ?? Number.POSITIVE_INFINITY);
+      }
+      return left.rank - right.rank;
+    });
+    return ranked.map((item, index) => ({ ...item, rank: index + 1 }));
   }
 
   function renderSystemStateBlock(rankedList) {
@@ -394,13 +430,9 @@ export function createResultsView({
   }
 
   function renderTemplate() {
-    const rankedList =
-      viewState === 'loading' || viewState === 'error'
-        ? []
-        : rankRestaurantCandidates(getActiveCandidates(), searchContext, {
-            sortBy,
-            includeUnverified,
-          });
+    const rankedList = viewState === 'loading' || viewState === 'error'
+      ? []
+      : buildRankedResults();
 
     const comparedItems = comparedIds
       .map((id) => rankedList.find((item) => item.restaurant.id === id))
@@ -692,10 +724,7 @@ export function createResultsView({
     if (action === 'select') {
       const id = button.dataset.restaurantId;
       selectedId = selectedId === id ? null : id;
-      const rankedList = rankRestaurantCandidates(getActiveCandidates(), searchContext, {
-        sortBy,
-        includeUnverified,
-      });
+      const rankedList = buildRankedResults();
       const chosen = rankedList.find((item) => item.restaurant.id === selectedId) ?? null;
       rerender();
       onSelectRestaurant?.(chosen ? chosen.restaurant : null, chosen);
@@ -704,10 +733,7 @@ export function createResultsView({
 
     if (action === 'detail') {
       const id = button.dataset.restaurantId;
-      const rankedList = rankRestaurantCandidates(getActiveCandidates(), searchContext, {
-        sortBy,
-        includeUnverified,
-      });
+      const rankedList = buildRankedResults();
       const chosen = rankedList.find((item) => item.restaurant.id === id);
       if (chosen) {
         selectedId = id;
@@ -759,10 +785,7 @@ export function createResultsView({
       rerender();
     },
     getRankedResults() {
-      return rankRestaurantCandidates(getActiveCandidates(), searchContext, {
-        sortBy,
-        includeUnverified,
-      });
+      return buildRankedResults();
     },
   };
 }

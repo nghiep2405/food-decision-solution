@@ -500,7 +500,13 @@ class ExternalPlacesCandidateProvider:
         simulate_failure: bool = False,
     ) -> None:
         self._fetcher = fetcher
-        self._overpass_url = overpass_url or os.getenv("EXTERNAL_PLACES_API_URL", "")
+        # External HTTP is opt-in so tests and the classroom demo remain
+        # deterministic. Set ENABLE_EXTERNAL_PLACES=true together with the URL
+        # when the team intentionally evaluates the live provider.
+        use_live_external = os.getenv("ENABLE_EXTERNAL_PLACES", "").lower() == "true"
+        self._overpass_url = overpass_url or (
+            os.getenv("EXTERNAL_PLACES_API_URL", "") if use_live_external else ""
+        )
         self._timeout_seconds = timeout_seconds
         self._simulate_failure = simulate_failure
 

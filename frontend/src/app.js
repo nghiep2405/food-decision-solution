@@ -4,10 +4,13 @@ import { mountHome } from './features/home/index.js';
 import { DEMO_SCENARIOS, mountRestaurantDiscovery } from './features/restaurant-discovery/index.js';
 import { mountSearchArea } from './features/search-area/index.js';
 import { mountRecommendation } from './features/recommendation/index.js';
+import { fetchRecommendations } from './features/recommendation/api.js';
 import { mountResults } from './features/results/index.js';
 import { demoMenu, demoRestaurant, mountMenu } from './features/menu/index.js';
+import { fetchRestaurantMenu } from './features/menu/api.js';
 import { mountBudget } from './features/budget/index.js';
 import { mountReviewReliability } from './features/review-reliability/index.js';
+import { analyzeReviews } from './features/review-reliability/api.js';
 
 const appRoot = document.querySelector('#app');
 
@@ -21,6 +24,8 @@ let currentSearchContext = null;
 let currentMenu = demoMenu;
 let selectedMenuItems = [];
 let mealRestaurantId = null;
+let menuLoadAttemptedForId = null;
+let currentRankedResult = null;
 let restaurantReturnRoute = '/search';
 
 function currentRoute() {
@@ -58,6 +63,7 @@ function prepareRestaurantMeal() {
   mealRestaurantId = selectedRestaurant.id;
   currentMenu = demoMenu;
   selectedMenuItems = [];
+  menuLoadAttemptedForId = null;
 }
 
 const shell = createAppShell(appRoot, {
@@ -107,6 +113,8 @@ function renderHomeRoute() {
   currentMenu = demoMenu;
   selectedMenuItems = [];
   mealRestaurantId = null;
+  menuLoadAttemptedForId = null;
+  currentRankedResult = null;
   shell.setSelection(null);
   shell.setBackAction({ visible: false });
   activeFeature = mountHome(shell.main, {
@@ -233,10 +241,20 @@ function renderRecommendationRoute() {
   shell.setBackAction({ visible: true, label: 'Trang chủ' });
   activeFeature = mountRecommendation(shell.main, {
     initialPreset: currentSearchContext?.preferences?.isColdStart ? 'cold-start' : 'returning',
-    onSubmit(searchContext) {
+    async onSubmit(searchContext) {
       currentSearchContext = searchContext;
-      shell.showToast('Đã tạo yêu cầu gợi ý và chuyển sang bảng xếp hạng.', 'success');
-      navigate('/results');
+      currentRankedResult = null;
+      shell.setLoading(true, 'Đang tìm ứng viên và xếp hạng gợi ý...');
+      try {
+        currentRankedResult = await fetchRecommendations(searchContext);
+        shell.showToast('Đã xếp hạng quán từ dữ liệu backend.', 'success');
+        navigate('/results');
+      } catch (error) {
+        shell.showToast(`Không gọi được backend: ${error.message} Đang dùng dữ liệu demo.`, 'warning');
+        navigate('/results');
+      } finally {
+        shell.setLoading(false);
+      }
     },
     onSwitchMode() {
       navigate('/search');
@@ -251,6 +269,7 @@ function renderResultsRoute() {
   shell.setBackAction({ visible: true, label: 'Sở thích & bối cảnh' });
   activeFeature = mountResults(shell.main, {
     searchContext: currentSearchContext,
+    rankedItems: currentRankedResult?.items ?? null,
     initialScenario: currentSearchContext?.preferences?.isColdStart ? 'cold-start' : 'recommendation',
     onSelectRestaurant(restaurant) {
       selectedRestaurant = restaurant;
@@ -310,6 +329,25 @@ function renderMenuRoute() {
       actionLabel: 'Kiểm tra ngân sách',
     });
   }
+
+  const restaurantId = selectedRestaurant.id;
+  if (!restaurantId.startsWith('demo-') && menuLoadAttemptedForId !== restaurantId) {
+    menuLoadAttemptedForId = restaurantId;
+    fetchRestaurantMenu(restaurantId)
+      .then((menuItems) => {
+        if (selectedRestaurant?.id !== restaurantId) return;
+        currentMenu = menuItems;
+        selectedMenuItems = [];
+        if (currentRoute() === '/restaurant-detail' || currentRoute() === '/menu') {
+          activeFeature?.unmount?.();
+          renderMenuRoute();
+          shell.showToast('Đã tải menu chuẩn hóa từ backend.', 'success');
+        }
+      })
+      .catch((error) => {
+        shell.showToast(`Chưa tải được menu backend: ${error.message} Đang giữ menu demo.`, 'warning');
+      });
+  }
 }
 
 function renderReviewReliabilityRoute() {
@@ -319,20 +357,30 @@ function renderReviewReliabilityRoute() {
   shell.setBackAction({ visible: true, label: 'Chi tiết quán' });
 
   const summary = selectedRestaurant.reviewSummary ?? null;
-  const initialScenario = summary?.evidenceStatus === 'insufficient_evidence'
-    ? 'insufficient'
-    : summary?.status === 'potentially_suspicious'
-      ? 'suspicious_burst'
-      : 'normal';
-
   activeFeature = mountReviewReliability(shell.main, {
     restaurant: selectedRestaurant,
     summaryData: summary,
-    initialScenario,
     onOpenFeedback() {
       shell.showToast('Feature Feedback chưa được tích hợp vào main.', 'info');
     },
   });
+
+  const restaurantId = selectedRestaurant.id;
+  const loadAnalysis = async () => {
+    activeFeature?.setViewState?.('loading');
+    try {
+      const nextSummary = await analyzeReviews(restaurantId, 'combined');
+      if (currentRoute() === '/review-reliability' && selectedRestaurant?.id === restaurantId) {
+        activeFeature?.setSummaryData?.(nextSummary);
+      }
+    } catch (error) {
+      activeFeature?.setViewState?.('error');
+      shell.showToast(`Không phân tích được review: ${error.message}`, 'warning');
+    }
+  };
+
+  shell.main.addEventListener('review:retry-analysis', loadAnalysis, { once: true });
+  if (!restaurantId.startsWith('demo-')) loadAnalysis();
 }
 
 function renderBudgetRoute() {
