@@ -150,10 +150,29 @@ def extract_menu_visual(
     if not all([api_url, api_key, model]):
         raise ValueError("Thiếu cấu hình Faculty AI API.")
 
-    image = Image.open(BytesIO(image_bytes))
-    image.verify()
+    
+    try:
+        with Image.open(BytesIO(image_bytes)) as image:
+            image_format = image.format
+            image.verify()
+    except (OSError, ValueError) as error:
+        raise ValueError("Ảnh menu không hợp lệ.") from error
 
-    encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+    mime_types = {
+        "JPEG": "image/jpeg",
+        "PNG": "image/png",
+        "WEBP": "image/webp",
+    }
+
+    mime_type = mime_types.get(image_format)
+
+    if mime_type is None:
+        raise ValueError("Định dạng ảnh không được hỗ trợ.")
+
+    encoded_image = base64.b64encode(
+        image_bytes
+    ).decode("utf-8")
+
 
     prompt = """
     Đọc thực đơn trong ảnh và trả về JSON hợp lệ.
@@ -199,7 +218,7 @@ def extract_menu_visual(
                         "type": "image_url",
                         "image_url": {
                             "url": (
-                                "data:image/jpeg;base64,"
+                                f"data:{mime_type};base64,"
                                 + encoded_image
                             )
                         },
@@ -234,6 +253,17 @@ def extract_menu_visual(
         raw_output = json.loads(content)
     else:
         raise ValueError("Faculty AI không trả JSON dạng text.")
+    
+    if not isinstance(raw_output, dict):
+        raise ValueError(
+            "Kết quả OCR phải là JSON object."
+        )
+
+    if not isinstance(raw_output.get("items"), list):
+        raise ValueError(
+            "Kết quả OCR phải chứa danh sách items."
+        )
+
 
     menu = normalize_menu_output(
         raw_output=raw_output,
