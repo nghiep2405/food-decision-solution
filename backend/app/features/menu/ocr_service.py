@@ -94,7 +94,7 @@ def normalize_menu_output(
         verification_status=VerificationStatus.UNVERIFIED,
         items=items,
     )
-    def run_tesseract_ocr(image_bytes: bytes) -> str:
+def run_tesseract_ocr(image_bytes: bytes) -> str:
     """
     Đọc chữ từ ảnh menu bằng Tesseract.
     Hỗ trợ tiếng Việt và tiếng Anh.
