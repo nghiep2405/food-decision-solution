@@ -211,6 +211,31 @@ class MenuRepository:
         self.connection.commit()
         return str(payload["id"])
     
+    def find_asset_by_checksum(self, checksum: str):
+        return self.connection.execute(
+            "SELECT * FROM menu_assets WHERE checksum = ?", (checksum,)
+        ).fetchone()
+
+    def update_asset_status(self, asset_id: str, status: str) -> None:
+        self.connection.execute(
+            "UPDATE menu_assets SET processing_status = ? WHERE id = ?",
+            (status, asset_id),
+        )
+
+    def update_ocr_run(
+        self, run_id: str, *, status: str, latency_ms: int,
+        processed_at: str, error_message: str | None = None,
+        raw_text: str | None = None, raw_response_path: str | None = None,
+        structured_json_path: str | None = None, confidence: float | None = None,
+    ) -> None:
+        self.connection.execute(
+            """UPDATE ocr_runs SET status = ?, latency_ms = ?, processed_at = ?,
+               error_message = ?, raw_text = ?, raw_response_path = ?,
+               structured_json_path = ?, confidence = ? WHERE id = ?""",
+            (status, latency_ms, processed_at, error_message, raw_text,
+             raw_response_path, structured_json_path, confidence, run_id),
+        )
+
     def save_normalized_menu(
         self,
         menu: NormalizedMenu,
@@ -218,6 +243,7 @@ class MenuRepository:
         menu_asset_id: str | None = None,
         ocr_run_id: str | None = None,
         activate: bool = True,
+        manage_transaction: bool = True,
     ) -> str:
         """Lưu menu đã chuẩn hóa và toàn bộ món ăn."""
 
@@ -229,7 +255,9 @@ class MenuRepository:
         def enum_value(value):
             return value.value if hasattr(value, "value") else value
 
-        with self.connection:
+        from contextlib import nullcontext
+
+        with (self.connection if manage_transaction else nullcontext()):
             # Không ghi đè menu cũ.
             existing = self.connection.execute(
                 "SELECT id FROM menu_versions WHERE id = ?",
