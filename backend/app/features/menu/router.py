@@ -6,6 +6,7 @@ from app.data.repositories import MenuRepository
 from pathlib import Path
 from uuid import uuid4
 from datetime import datetime, timezone
+from typing import Literal
 import hashlib
 
 from fastapi import File, Form, UploadFile
@@ -169,4 +170,44 @@ async def upload_menu_for_ocr(
             "Chưa thực hiện OCR."
         ),
     }
+
+def record_ocr_run(
+    *,
+    menu_asset_id: str,
+    method: Literal["visual", "text_pipeline"],
+    model_version: str,
+    status: Literal["pending", "completed", "failed"],
+    raw_text: str | None = None,
+    latency_ms: int | None = None,
+    error_message: str | None = None,
+    confidence: float | None = None,
+) -> str:
+    """Ghi một lần chạy OCR vào SQLite."""
+
+    run_id = str(uuid4())
+
+    payload = {
+        "id": run_id,
+        "menu_asset_id": menu_asset_id,
+        "method": method,
+        "model_version": model_version,
+        "prompt_version": "v1",
+        "raw_text": raw_text,
+        "raw_response_path": None,
+        "structured_json_path": None,
+        "confidence": confidence,
+        "latency_ms": latency_ms,
+        "status": status,
+        "error_message": error_message,
+        "processed_at": datetime.now(
+            timezone.utc
+        ).isoformat(),
+    }
+
+    with connect_database() as connection:
+        repository = MenuRepository(connection)
+        repository.save_ocr_run(payload)
+
+    return run_id
+
 
