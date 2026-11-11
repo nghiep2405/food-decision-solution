@@ -59,6 +59,11 @@ def normalize_menu_output(
                 and price >= 0
             ):
                 price = None
+            
+            # Không lưu đồng thời giá chính xác và khoảng giá.
+            if price is not None:
+                price_range = None
+
 
             variants.append(
                 MenuVariant(
