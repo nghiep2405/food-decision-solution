@@ -8,7 +8,7 @@ from app.data.contracts import ApiModel, NormalizedMenu
 
 class OCRMethod(str, Enum):
     VISUAL = "visual"
-    TEXT_PIPELINE = "text_pipeline"
+    TEXT_PIPELINE = "textPipeline"
 
 
 class OCRResponse(ApiModel):
