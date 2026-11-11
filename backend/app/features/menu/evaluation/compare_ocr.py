@@ -14,13 +14,30 @@ def key(name):
 
 def price_key(item):
     variants = item.get("variants") or []
-    values = []
-    for variant in variants:
-        values.append((variant.get("price"), variant.get("priceMin"), variant.get("priceMax"), variant.get("currency", "VND")))
-    return sorted(values, key=str)
 
+    if variants:
+        values = []
+        for variant in variants:
+            values.append((
+                variant.get("price"),
+                variant.get("priceMin"),
+                variant.get("priceMax"),
+                variant.get("currency", "VND")
+            ))
+        return sorted(values, key=str)
+
+    price = item.get("price")
+    price_min = item.get("priceMin", price)
+    price_max = item.get("priceMax", price)
+
+    return [(
+        None,
+        price_min,
+        price_max,
+        item.get("currency", "VND")
+    )]
 def evaluate(gt, runs):
-    truth = {s["image_file"]: s for s in gt["samples"]}
+    truth = {s.get("image_file", s.get("image")): s for s in gt["samples"]}
     output = {}
     for method in ("visual", "text_pipeline"):
         subset = [r for r in runs["runs"] if r.get("method") in (method, "textPipeline" if method == "text_pipeline" else method)]
