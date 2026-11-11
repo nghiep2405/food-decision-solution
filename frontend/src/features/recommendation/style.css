@@ -503,3 +503,37 @@
     flex: 1 1 100%;
   }
 }
+
+
+/* MVP-03: Recommendation mobile UI improvements */
+
+@media (max-width: 400px) {
+  .recommendation-notice {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .recommendation-notice__badge {
+    flex-shrink: 0;
+    width: fit-content;
+    min-width: 24px;
+    height: auto;
+    min-height: 24px;
+    white-space: nowrap;
+  }
+
+  .recommendation-summary-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .recommendation-summary-list strong {
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .recommendation-presets {
+    min-width: 0;
+  }
+}

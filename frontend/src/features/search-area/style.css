@@ -94,3 +94,30 @@
   .search-area-map { height: 330px; }
   .search-area-map-actions > button { width: 100%; }
 }
+
+
+.search-area-kicker,
+.search-area-map-label,
+.search-area-legend {
+  font-size: 0.8rem;
+}
+
+.search-area-primary:disabled,
+.search-area-outline:disabled {
+  cursor: not-allowed;
+}
+
+.search-area-primary[aria-busy="true"],
+.search-area-outline[aria-busy="true"] {
+  cursor: wait;
+}
+
+@media (max-width: 560px) {
+  .search-area-location-actions > .search-area-outline {
+    flex-basis: 100%;
+  }
+
+  .search-area-map {
+    min-width: 0;
+  }
+}

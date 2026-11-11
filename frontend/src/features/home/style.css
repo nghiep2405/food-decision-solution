@@ -71,3 +71,52 @@
   .home-data-note { grid-template-columns: auto 1fr; }
   .home-data-note .ui-button { grid-column: 1 / -1; }
 }
+
+@media (max-width: 560px) {
+  .home-hero h1 {
+    font-size: clamp(2.25rem, 9vw, 3.2rem);
+    line-height: 1.05;
+    overflow-wrap: break-word;
+  }
+
+  .home-mode-card__body small {
+    font-size: 0.8rem;
+  }
+
+  .home-mode-actions p {
+    font-size: 0.85rem;
+  }
+
+  .home-trust-list {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .home-mode-card {
+    gap: var(--space-3);
+  }
+
+  .home-mode-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .home-mode-card__body {
+    min-width: 0;
+  }
+
+  .home-mode-card__body strong {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mode-card {
+    transition: none;
+  }
+
+  .home-mode-card:hover {
+    transform: none;
+  }
+}
