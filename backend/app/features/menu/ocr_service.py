@@ -135,6 +135,7 @@ def extract_menu_visual(
     image_bytes: bytes,
     restaurant_id: str,
     menu_version_id: str,
+    capture: dict | None = None,
 ) -> NormalizedMenu:
     """
     Gửi ảnh menu trực tiếp tới Faculty AI API.
@@ -247,6 +248,8 @@ def extract_menu_visual(
     )
 
     result = response.json()
+    if capture is not None:
+        capture["raw_response"] = result
     content = result["choices"][0]["message"]["content"]
 
     if isinstance(content, str):
@@ -265,6 +268,8 @@ def extract_menu_visual(
         )
 
 
+    if capture is not None:
+        capture["structured"] = raw_output
     menu = normalize_menu_output(
         raw_output=raw_output,
         restaurant_id=restaurant_id,
@@ -281,6 +286,7 @@ def extract_menu_text_pipeline(
     restaurant_id: str,
     menu_version_id: str,
     text_structurer: Callable[[str], dict],
+    capture: dict | None = None,
 ) -> NormalizedMenu:
     """
     Pipeline:
@@ -299,7 +305,11 @@ def extract_menu_text_pipeline(
             "Tesseract không tìm thấy văn bản trong ảnh."
         )
 
+    if capture is not None:
+        capture["raw_text"] = raw_text
     raw_output = text_structurer(raw_text)
+    if capture is not None:
+        capture["structured"] = raw_output
 
     if not isinstance(raw_output, dict):
         raise ValueError(
@@ -317,6 +327,5 @@ def extract_menu_text_pipeline(
         menu_version_id=menu_version_id,
         source_type="ocr_text_pipeline",
     )
-    
 
 
