@@ -191,6 +191,26 @@ class MenuRepository:
         )
         self.connection.commit()
         return str(payload["id"])
+    
+    def save_menu_asset(self, payload: Mapping[str, Any]) -> str:
+        """Lưu metadata của ảnh menu vào SQLite."""
+        self.connection.execute(
+            """
+            INSERT INTO menu_assets (
+                id, restaurant_id, asset_type, local_path,
+                source_url, source_type, captured_at,
+                checksum, processing_status, created_at
+            ) VALUES (
+                :id, :restaurant_id, :asset_type, :local_path,
+                :source_url, :source_type, :captured_at,
+                :checksum, :processing_status, :created_at
+            )
+            """,
+            dict(payload),
+        )
+        self.connection.commit()
+        return str(payload["id"])
+
 
 
 class ReviewRepository:
