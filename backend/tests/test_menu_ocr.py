@@ -1,3 +1,8 @@
+from io import BytesIO
+
+from PIL import Image
+
+import app.features.menu.ocr_service as ocr_service
 
 from app.features.menu.ocr_service import normalize_menu_output
 
@@ -73,3 +78,34 @@ def test_normalize_menu_output_skips_empty_dish_name():
     )
 
     assert len(result.items) == 0
+
+def test_run_tesseract_ocr_returns_text(monkeypatch):
+    image_buffer = BytesIO()
+
+    Image.new("RGB", (100, 100), color="white").save(
+        image_buffer,
+        format="PNG"
+    )
+
+    image_bytes = image_buffer.getvalue()
+
+    def fake_image_to_string(image, lang):
+        assert lang == "vie+eng"
+        return "  Com Tam  "
+
+    monkeypatch.setattr(
+        ocr_service.pytesseract,
+        "image_to_string",
+        fake_image_to_string
+    )
+
+    result = ocr_service.run_tesseract_ocr(image_bytes)
+
+    assert result == "Com Tam"
+
+
+def test_run_tesseract_ocr_rejects_empty_image():
+    import pytest
+
+    with pytest.raises(ValueError):
+        ocr_service.run_tesseract_ocr(b"")
