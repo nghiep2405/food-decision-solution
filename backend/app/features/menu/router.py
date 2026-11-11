@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from app.data.database import connect_database
+from app.data.database import DATA_ROOT, connect_database
 from app.data.repositories import MenuRepository
 from pathlib import Path
 from uuid import uuid4
@@ -37,9 +37,6 @@ def get_restaurant_menu(restaurant_id: str):
     return menu
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
-
-
-from app.data.database import DATA_ROOT
 
 UPLOAD_DIR = DATA_ROOT / "menu_uploads"
 
