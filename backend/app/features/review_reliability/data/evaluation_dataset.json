@@ -1,0 +1,112 @@
+[
+  {
+    "id": "rev_01",
+    "restaurant_id": "quan-goc-hue",
+    "text": "Quán phục vụ tốt, đồ ăn ngon vừa miệng.",
+    "rating": 5,
+    "created_at": "2026-11-10T12:00:00Z",
+    "author_hash": "hash_01",
+    "is_suspicious": 0,
+    "category": "Bình thường",
+    "metadata_note": "Thời gian đăng bình thường."
+  },
+  {
+    "id": "rev_02",
+    "restaurant_id": "quan-goc-hue",
+    "text": "Hơi ồn ào nhưng giá cả hợp lý.",
+    "rating": 4,
+    "created_at": "2026-11-10T13:30:00Z",
+    "author_hash": "hash_02",
+    "is_suspicious": 0,
+    "category": "Bình thường",
+    "metadata_note": "Thời gian đăng bình thường."
+  },
+  {
+    "id": "rev_03",
+    "restaurant_id": "la-xanh-bistro",
+    "text": "Quán dơ, đồ ăn có ruồi, thái độ nhân viên cực kỳ tệ!",
+    "rating": 5,
+    "created_at": "2026-11-10T14:00:00Z",
+    "author_hash": "hash_03",
+    "is_suspicious": 1,
+    "category": "Bất thường (Xung đột)",
+    "metadata_note": "Chê thậm tệ nhưng chấm 5 sao."
+  },
+  {
+    "id": "rev_04",
+    "restaurant_id": "bep-nha-an",
+    "text": "Trải nghiệm tồi tệ, sẽ không bao giờ quay lại.",
+    "rating": 1,
+    "created_at": "2026-11-10T10:00:00Z",
+    "author_hash": "hash_04",
+    "is_suspicious": 1,
+    "category": "Bất thường (Spam)",
+    "metadata_note": "Đăng lúc 10:00."
+  },
+  {
+    "id": "rev_05",
+    "restaurant_id": "bep-nha-an",
+    "text": "Trải nghiệm tồi tệ, sẽ không bao giờ quay lại.",
+    "rating": 1,
+    "created_at": "2026-11-10T10:01:00Z",
+    "author_hash": "hash_05",
+    "is_suspicious": 1,
+    "category": "Bất thường (Spam)",
+    "metadata_note": "Đăng lúc 10:01 (Trùng nội dung)."
+  },
+  {
+    "id": "rev_06",
+    "restaurant_id": "bep-nha-an",
+    "text": "Quá ngon, tuyệt đỉnh!",
+    "rating": 5,
+    "created_at": "2026-11-10T10:01:30Z",
+    "author_hash": "hash_06",
+    "is_suspicious": 1,
+    "category": "Bất thường (Burst)",
+    "metadata_note": "Đăng sát giờ với các review khác."
+  },
+  {
+    "id": "rev_07",
+    "restaurant_id": "quan-goc-hue",
+    "text": "Món bún bò ở đây nước dùng rất đậm đà, thịt bò mềm. Sẽ quay lại.",
+    "rating": 5,
+    "created_at": "2026-11-09T18:00:00Z",
+    "author_hash": "hash_07",
+    "is_suspicious": 0,
+    "category": "Bình thường",
+    "metadata_note": "Nội dung chi tiết, tự nhiên."
+  },
+  {
+    "id": "rev_08",
+    "restaurant_id": "la-xanh-bistro",
+    "text": "Món ăn quá dở, không đáng tiền.",
+    "rating": 1,
+    "created_at": "2026-11-09T19:00:00Z",
+    "author_hash": "hash_08",
+    "is_suspicious": 0,
+    "category": "Bình thường",
+    "metadata_note": "Đánh giá thấp nhưng nhất quán với nội dung."
+  },
+  {
+    "id": "rev_09",
+    "restaurant_id": "bep-nha-an",
+    "text": "Ngon",
+    "rating": 5,
+    "created_at": "2026-11-10T10:02:00Z",
+    "author_hash": "hash_09",
+    "is_suspicious": 1,
+    "category": "Bất thường (Burst)",
+    "metadata_note": "Đăng rất ngắn và sát giờ với các review khác."
+  },
+  {
+    "id": "rev_10",
+    "restaurant_id": "bep-nha-an",
+    "text": "Ngon",
+    "rating": 5,
+    "created_at": "2026-11-10T10:02:30Z",
+    "author_hash": "hash_10",
+    "is_suspicious": 1,
+    "category": "Bất thường (Burst/Spam)",
+    "metadata_note": "Đăng rất ngắn, sát giờ và lặp lại nội dung."
+  }
+]
