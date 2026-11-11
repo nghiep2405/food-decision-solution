@@ -1,4 +1,10 @@
+import os
+import time
 
+from app.features.menu.ocr_service import (
+    extract_menu_visual,
+    extract_menu_text_pipeline,
+)
 from fastapi import APIRouter, HTTPException
 
 from app.data.database import DATA_ROOT, connect_database
@@ -46,6 +52,9 @@ UPLOAD_DIR = DATA_ROOT / "menu_uploads"
 async def upload_menu_for_ocr(
     restaurant_id: str = Form(...),
     image: UploadFile = File(...),
+    method: Literal["visual", "text_pipeline"] = Form(
+        "text_pipeline"
+    ),
 ):
     """
     Nhận ảnh menu, kiểm tra dữ liệu và lưu ảnh gốc.
@@ -158,15 +167,121 @@ async def upload_menu_for_ocr(
             image_path.unlink(missing_ok=True)
             raise
 
-    return {
-        "asset_id": asset_id,
-        "restaurant_id": restaurant_id,
-        "processing_status": "pending",
-        "message": (
-            "Đã lưu ảnh menu. "
-            "Chưa thực hiện OCR."
-        ),
-    }
+    
+    # Chỉ thực hiện OCR khi có AI client tương ứng.
+    # Không tạo kết quả OCR giả.
+
+    if method == "text_pipeline":
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Đã lưu ảnh menu, nhưng Text Pipeline "
+                "chưa được kết nối với AI text structurer."
+            ),
+        )
+
+    if method == "visual":
+        if not all(
+            [
+                os.getenv("FACULTY_AI_API_URL"),
+                os.getenv("FACULTY_AI_API_KEY"),
+                os.getenv("FACULTY_AI_MODEL"),
+            ]
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Đã lưu ảnh menu, nhưng Visual OCR "
+                    "chưa được cấu hình Faculty AI."
+                ),
+            )
+
+        menu_version_id = str(uuid4())
+        start = time.perf_counter()
+
+        try:
+            menu = extract_menu_visual(
+                image_bytes=image_bytes,
+                restaurant_id=restaurant_id,
+                menu_version_id=menu_version_id,
+            )
+
+            latency_ms = int(
+                (time.perf_counter() - start) * 1000
+            )
+
+            run_id = record_ocr_run(
+                menu_asset_id=asset_id,
+                method="visual",
+                model_version=os.getenv(
+                    "FACULTY_AI_MODEL", "unknown"
+                ),
+                status="completed",
+                latency_ms=latency_ms,
+            )
+
+            with connect_database() as connection:
+                repository = MenuRepository(connection)
+                repository.save_normalized_menu(
+                    menu,
+                    menu_asset_id=asset_id,
+                    ocr_run_id=run_id,
+                    activate=True,
+                )
+
+                connection.execute(
+                    """
+                    UPDATE menu_assets
+                    SET processing_status = 'processed'
+                    WHERE id = ?
+                    """,
+                    (asset_id,),
+                )
+                connection.commit()
+
+            return {
+                "asset_id": asset_id,
+                "ocr_run_id": run_id,
+                "menu_version_id": menu_version_id,
+                "method": method,
+                "status": "completed",
+                "menu": menu.model_dump(
+                    mode="json",
+                    by_alias=True,
+                ),
+            }
+
+        except Exception as error:
+            latency_ms = int(
+                (time.perf_counter() - start) * 1000
+            )
+
+            record_ocr_run(
+                menu_asset_id=asset_id,
+                method="visual",
+                model_version=os.getenv(
+                    "FACULTY_AI_MODEL", "unknown"
+                ),
+                status="failed",
+                latency_ms=latency_ms,
+                error_message=str(error)[:1000],
+            )
+
+            with connect_database() as connection:
+                connection.execute(
+                    """
+                    UPDATE menu_assets
+                    SET processing_status = 'failed'
+                    WHERE id = ?
+                    """,
+                    (asset_id,),
+                )
+                connection.commit()
+
+            raise HTTPException(
+                status_code=502,
+                detail="Visual OCR thất bại. Vui lòng kiểm tra cấu hình và log.",
+            ) from error
 
 def record_ocr_run(
     *,
