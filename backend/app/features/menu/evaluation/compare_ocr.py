@@ -1,66 +1,77 @@
-# MVP-06 — So sánh hai phương pháp Menu OCR
+def key(name):
+return " ".join(unicodedata.normalize("NFC", str(name)).casefold().split())
 
-## 1. Mục tiêu
 
-So sánh hai phương pháp trích xuất thông tin thực đơn:
+def price_key(item):
+    """Convert menu prices into comparable (min, max, currency) tuples."""
 
-- **Visual OCR:** Sử dụng Faculty AI để phân tích trực tiếp ảnh menu và trả về dữ liệu có cấu trúc.
-- **Text Pipeline:** Sử dụng Tesseract OCR (`vie+eng`) để trích xuất văn bản, sau đó sử dụng Faculty AI để chuẩn hóa dữ liệu.
+    def normalize_price(data, default_currency="VND"):
+        currency = data.get("currency") or default_currency
+        price = data.get("price")
 
-Cả hai phương pháp sử dụng chung hàm chuẩn hóa và trả về `NormalizedMenu`.
+        if price is not None:
+            return (price, price, currency)
 
-## 2. Bộ dữ liệu đánh giá
+        price_range = data.get("priceRange") or data.get("price_range")
+        if isinstance(price_range, dict):
+            return (
+                price_range.get("min"),
+                price_range.get("max"),
+                currency,
+            )
 
-Sử dụng 3 ảnh menu synthetic, với tổng cộng 31 món ăn và đồ uống được gắn nhãn thủ công:
+        return (
+            data.get("priceMin"),
+            data.get("priceMax"),
+            currency,
+        )
 
-| Ảnh menu | Số món |
-|---|---:|
-| Quán Góc Huế | 9 |
-| Bếp Nhà An | 11 |
-| Cơm Tấm Phố | 11 |
-| **Tổng cộng** | **31** |
+variants = item.get("variants") or []
 
-Bộ dữ liệu chỉ phục vụ đánh giá MVP, không đại diện cho hiệu năng OCR trên thực đơn ngoài đời.
+if variants:
+        values = []
+        for variant in variants:
+            values.append((
+                variant.get("price"),
+                variant.get("priceMin"),
+                variant.get("priceMax"),
+                variant.get("currency", "VND")
+            ))
+        return sorted(values, key=str)
 
-## 3. So sánh định tính dự kiến
+    price = item.get("price")
+    price_min = item.get("priceMin", price)
+    price_max = item.get("priceMax", price)
 
-**Visual OCR**
+    return [(
+        None,
+        price_min,
+        price_max,
+        item.get("currency", "VND")
+    )]
+        return sorted(
+            [normalize_price(variant, item.get("currency", "VND"))
+             for variant in variants],
+            key=str,
+        )
 
-- Có khả năng nhận diện đồng thời văn bản và bố cục thực đơn.
-- Dự kiến có lợi thế khi ghép tên món với giá tương ứng.
-- Có thể xử lý tốt hơn các thực đơn có nhiều cột hoặc cách trình bày phức tạp.
-- Phụ thuộc vào chất lượng mô hình thị giác và phản hồi từ Faculty AI.
+    return [normalize_price(item)]
 
-**Text Pipeline**
+def evaluate(gt, runs):
+truth = {s.get("image_file", s.get("image")): s for s in gt["samples"]}
+output = {}
+@@ -53,7 +65,13 @@ def evaluate(gt, runs):
+continue
+valid += 1
+gt_items = {key(x["dishName"]): x for x in sample["items"]}
+            pred_items = {key(x.get("dishName", x.get("name", ""))): x for x in items if x.get("dishName") or x.get("name")}
+            
+            pred_items = {
+                key(x.get("dishName") or x.get("name") or x.get("normalizedName") or ""): x
+                for x in items
+                if x.get("dishName") or x.get("name") or x.get("normalizedName")
+            }
 
-- Sử dụng Tesseract `vie+eng` để nhận diện văn bản tiếng Việt và tiếng Anh.
-- Có thể hoạt động tốt với ảnh rõ nét, bố cục đơn giản.
-- Có nguy cơ nhận diện sai dấu tiếng Việt, chữ số hoặc thứ tự dòng.
-- Faculty AI có thể hỗ trợ cấu trúc lại văn bản nhưng không bảo đảm khôi phục chính xác thông tin OCR đã đọc sai.
-
-## 4. Dự đoán kết quả
-
-Visual OCR được dự đoán có lợi thế về nhận diện bố cục, tên món và liên kết giá với món.
-
-Text Pipeline có thể đạt kết quả gần tương đương trên menu rõ nét, trình bày đơn giản, nhưng có nguy cơ phát sinh lỗi từ bước nhận diện văn bản.
-
-Đây là nhận định dựa trên đặc điểm kỹ thuật của hai phương pháp, **không phải kết quả chạy OCR thực tế**.
-
-## 5. Chỉ số đánh giá
-
-| Chỉ số | Visual OCR | Text Pipeline |
-|---|---|---|
-| Dish-name F1 | Chưa đo | Chưa đo |
-| Price accuracy | Chưa đo | Chưa đo |
-| JSON validity rate | Chưa đo | Chưa đo |
-| Average latency | Chưa đo | Chưa đo |
-
-## 6. Kết luận
-
-Cả hai phương pháp đã được triển khai để có thể thử nghiệm độc lập trên cùng một ảnh menu.
-
-Về mặt lý thuyết, Visual OCR là ứng viên có triển vọng hơn đối với menu có bố cục phức tạp. Text Pipeline là phương án thay thế có thể tiếp tục đánh giá.
-
-**Chưa lựa chọn phương pháp mặc định**, vì chưa có kết quả thực nghiệm đủ để đưa ra kết luận khách quan.
-
-Bước tiếp theo là chạy hai phương pháp trên cùng 3 ảnh, đối chiếu với ground truth và cập nhật bảng chỉ số.
+shared = gt_items.keys() & pred_items.keys()
+tp += len(shared); predicted += len(pred_items); actual += len(gt_items)
+for dish in shared:
