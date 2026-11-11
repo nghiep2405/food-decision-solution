@@ -239,9 +239,8 @@ def extract_menu_visual(
         raw_output=raw_output,
         restaurant_id=restaurant_id,
         menu_version_id=menu_version_id,
-        source_type="ocr",
+        source_type="ocr_visual",
     )
-
     return menu
 
 from typing import Callable
