@@ -48,6 +48,21 @@ Chưa có đủ dữ liệu thực nghiệm để xác định phương pháp n�
 
 ## 6. Giới hạn
 
-- Dataset chưa có ảnh menu được gắn nhãn.
+- Dataset hiện có 3 ảnh menu synthetic với 31 món được gắn nhãn thủ công. Chưa có kết quả chạy OCR thực tế trên bộ ảnh này.
 - Faculty AI API chưa được kiểm chứng trong môi trường thực tế.
 - Không sử dụng kết quả synthetic để tuyên bố độ chính xác trên menu thực tế.
+## 7. Đánh giá dự kiến hai phương pháp
+
+| Tiêu chí | Visual OCR | Text Pipeline |
+|---|---|---|
+| Nhận diện tên món | Dự kiến tốt | Phụ thuộc chất lượng Tesseract |
+| Nhận diện giá | Có lợi thế nhờ phân tích trực tiếp ảnh | Có thể nhầm chữ số hoặc dấu phân cách |
+| Xử lý bố cục nhiều cột | Dự kiến tốt hơn | Có nguy cơ sai thứ tự dòng |
+| Chuẩn hóa JSON | Faculty AI trực tiếp | Faculty AI sau bước OCR |
+| Thời gian xử lý | Chưa đo | Chưa đo |
+
+**Nhận định dự kiến:** Visual OCR có khả năng xử lý tốt hơn các menu có bố cục phức tạp nhờ phân tích trực tiếp hình ảnh. Text Pipeline có thể phù hợp với ảnh rõ nét, bố cục đơn giản.
+
+Đây là đánh giá định tính dựa trên đặc điểm kỹ thuật của hai phương pháp, không phải kết quả thực nghiệm.
+
+**Kết luận:** Chưa lựa chọn phương pháp mặc định. Cả hai phương pháp được giữ lại để thử nghiệm và so sánh khi môi trường Faculty AI sẵn sàng.
