@@ -191,6 +191,188 @@ class MenuRepository:
         )
         self.connection.commit()
         return str(payload["id"])
+    
+    def save_menu_asset(self, payload: Mapping[str, Any]) -> str:
+        """Lưu metadata của ảnh menu vào SQLite."""
+        self.connection.execute(
+            """
+            INSERT INTO menu_assets (
+                id, restaurant_id, asset_type, local_path,
+                source_url, source_type, captured_at,
+                checksum, processing_status, created_at
+            ) VALUES (
+                :id, :restaurant_id, :asset_type, :local_path,
+                :source_url, :source_type, :captured_at,
+                :checksum, :processing_status, :created_at
+            )
+            """,
+            dict(payload),
+        )
+        self.connection.commit()
+        return str(payload["id"])
+    
+    def find_asset_by_checksum(self, checksum: str):
+        return self.connection.execute(
+            "SELECT * FROM menu_assets WHERE checksum = ?", (checksum,)
+        ).fetchone()
+
+    def update_asset_status(self, asset_id: str, status: str) -> None:
+        self.connection.execute(
+            "UPDATE menu_assets SET processing_status = ? WHERE id = ?",
+            (status, asset_id),
+        )
+
+    def update_ocr_run(
+        self, run_id: str, *, status: str, latency_ms: int,
+        processed_at: str, error_message: str | None = None,
+        raw_text: str | None = None, raw_response_path: str | None = None,
+        structured_json_path: str | None = None, confidence: float | None = None,
+    ) -> None:
+        self.connection.execute(
+            """UPDATE ocr_runs SET status = ?, latency_ms = ?, processed_at = ?,
+               error_message = ?, raw_text = ?, raw_response_path = ?,
+               structured_json_path = ?, confidence = ? WHERE id = ?""",
+            (status, latency_ms, processed_at, error_message, raw_text,
+             raw_response_path, structured_json_path, confidence, run_id),
+        )
+
+    def save_normalized_menu(
+        self,
+        menu: NormalizedMenu,
+        *,
+        menu_asset_id: str | None = None,
+        ocr_run_id: str | None = None,
+        activate: bool = True,
+        manage_transaction: bool = True,
+    ) -> str:
+        """Lưu menu đã chuẩn hóa và toàn bộ món ăn."""
+
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc).isoformat()
+
+        # SQLite chỉ nhận giá trị enum dạng chuỗi.
+        def enum_value(value):
+            return value.value if hasattr(value, "value") else value
+
+        from contextlib import nullcontext
+
+        with (self.connection if manage_transaction else nullcontext()):
+            # Không ghi đè menu cũ.
+            existing = self.connection.execute(
+                "SELECT id FROM menu_versions WHERE id = ?",
+                (menu.menu_version_id,),
+            ).fetchone()
+
+            if existing:
+                raise ValueError(
+                    "menu_version_id đã tồn tại."
+                )
+
+            # Tắt phiên bản đang hoạt động trước khi
+            # kích hoạt phiên bản mới.
+            if activate:
+                self.connection.execute(
+                    """
+                    UPDATE menu_versions
+                    SET is_active = 0
+                    WHERE restaurant_id = ?
+                      AND is_active = 1
+                    """,
+                    (menu.restaurant_id,),
+                )
+
+            self.connection.execute(
+                """
+                INSERT INTO menu_versions (
+                    id, restaurant_id, menu_asset_id,
+                    ocr_run_id, source_type,
+                    verification_status, confidence,
+                    effective_at, created_at,
+                    is_active, notes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    menu.menu_version_id,
+                    menu.restaurant_id,
+                    menu_asset_id,
+                    ocr_run_id,
+                    enum_value(menu.source_type),
+                    enum_value(menu.verification_status),
+                    menu.confidence,
+                    None,
+                    now,
+                    1 if activate else 0,
+                    None,
+                ),
+            )
+
+            for item in menu.items:
+                self.connection.execute(
+                    """
+                    INSERT INTO menu_items (
+                        id, menu_version_id, category,
+                        original_name, normalized_name,
+                        description, availability,
+                        confidence, verification_status,
+                        source_line
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        item.id,
+                        menu.menu_version_id,
+                        item.category,
+                        item.name,
+                        item.normalized_name,
+                        item.description,
+                        enum_value(item.availability),
+                        item.confidence,
+                        enum_value(item.verification_status),
+                        None,
+                    ),
+                )
+
+                for variant in item.variants:
+                    price_min = None
+                    price_max = None
+
+                    if variant.price_range is not None:
+                        price_min = variant.price_range.min
+                        price_max = variant.price_range.max
+
+                    # Không lưu giá chính xác và khoảng
+                    # giá đồng thời.
+                    if variant.price is not None:
+                        price_min = None
+                        price_max = None
+
+                    self.connection.execute(
+                        """
+                        INSERT INTO menu_item_variants (
+                            id, menu_item_id, name,
+                            price, price_min, price_max,
+                            currency, confidence,
+                            verification_status
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            variant.id,
+                            item.id,
+                            variant.name,
+                            variant.price,
+                            price_min,
+                            price_max,
+                            variant.currency,
+                            variant.confidence,
+                            enum_value(
+                                variant.verification_status
+                            ),
+                        ),
+                    )
+
+        return menu.menu_version_id
+
+
 
 
 class ReviewRepository:
