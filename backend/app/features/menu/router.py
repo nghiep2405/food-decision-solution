@@ -218,7 +218,7 @@ async def upload_menu_for_ocr(
                 model_version=os.getenv(
                     "FACULTY_AI_MODEL", "unknown"
                 ),
-                status="completed",
+                status="pending",
                 latency_ms=latency_ms,
             )
 
@@ -229,6 +229,10 @@ async def upload_menu_for_ocr(
                     menu_asset_id=asset_id,
                     ocr_run_id=run_id,
                     activate=True,
+                )
+                update_ocr_run_status(
+                    run_id=run_id,
+                    status="completed",
                 )
 
                 connection.execute(
@@ -323,5 +327,31 @@ def record_ocr_run(
         repository.save_ocr_run(payload)
 
     return run_id
+
+def update_ocr_run_status(
+    run_id: str,
+    status: Literal["completed", "failed"],
+    error_message: str | None = None,
+) -> None:
+    """Cập nhật trạng thái một lần chạy OCR."""
+
+    with connect_database() as connection:
+        connection.execute(
+            """
+            UPDATE ocr_runs
+            SET status = ?,
+                error_message = ?,
+                processed_at = ?
+            WHERE id = ?
+            """,
+            (
+                status,
+                error_message,
+                datetime.now(timezone.utc).isoformat(),
+                run_id,
+            ),
+        )
+        connection.commit()
+
 
 
