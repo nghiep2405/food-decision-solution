@@ -1,0 +1,20 @@
+{
+  "image_file": "replace-with-permitted-menu-image.jpg",
+  "restaurant_id": "replace-with-existing-restaurant-id",
+  "annotator": "manual",
+  "items": [
+    {
+      "dishName": "Tên món trong ảnh",
+      "category": null,
+      "variants": [
+        {
+          "name": "Mặc định",
+          "price": null,
+          "priceMin": null,
+          "priceMax": null,
+          "currency": "VND"
+        }
+      ]
+    }
+  ]
+}
