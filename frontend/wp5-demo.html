@@ -4,27 +4,90 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WP5 Review Reliability Demo | Food Decision</title>
+    <style>
+      .debug-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-family: sans-serif;
+        border: 1px solid #ccc;
+      }
+      .debug-panel h3 { margin: 0 0 10px; font-size: 14px; }
+      .debug-panel button { margin: 4px; padding: 6px 10px; cursor: pointer; }
+    </style>
   </head>
   <body>
     <div id="wp5-demo-root"></div>
+    
+    <!-- Thanh Debug dành riêng cho lập trình viên -->
+    <div class="debug-panel">
+      <h3>🛠 Debug Controls</h3>
+      <button id="btn-normal">Mock: Bình thường</button>
+      <button id="btn-suspicious">Mock: Đáng ngờ</button>
+      <button id="btn-insufficient">Mock: Thiếu DL</button>
+      <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee;">
+      <button id="btn-loading">State: Loading</button>
+      <button id="btn-error">State: Error</button>
+    </div>
+
     <script type="module">
       import './src/styles/global.css';
       import { createAppShell } from './src/core/ui/app-shell.js';
       import { mountReviewReliability } from './src/features/review-reliability/index.js';
+      import { MOCK_REVIEWS_SCENARIOS } from './src/features/review-reliability/mock-data.js';
+      import { analyzeReviewReliabilityMock } from './src/features/review-reliability/algorithm.js';
 
       const root = document.getElementById('wp5-demo-root');
       const shell = createAppShell(root);
       shell.setBackAction({ visible: false });
 
-      mountReviewReliability(shell.main, {
+      // Mount feature vào UI Shell
+      const feature = mountReviewReliability(shell.main, {
         restaurant: {
           id: 'review-demo-restaurant',
           name: 'Quán ăn mẫu - Review Reliability',
         },
-        initialScenario: 'normal',
+        reviewsData: MOCK_REVIEWS_SCENARIOS['normal'],
         onOpenFeedback() {
           shell.showToast('Đã tạo điểm bàn giao sang feature Feedback.', 'info');
         },
+      });
+
+      // --- KẾT NỐI DEBUG PANEL VỚI FEATURE ---
+      document.getElementById('btn-normal').addEventListener('click', () => {
+        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['normal']);
+        feature.setSummaryData(summary);
+      });
+
+      document.getElementById('btn-suspicious').addEventListener('click', () => {
+        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['suspicious_burst']);
+        feature.setSummaryData(summary);
+      });
+
+      document.getElementById('btn-insufficient').addEventListener('click', () => {
+        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['insufficient']);
+        feature.setSummaryData(summary);
+      });
+
+      document.getElementById('btn-loading').addEventListener('click', () => {
+        feature.setViewState('loading');
+      });
+
+      document.getElementById('btn-error').addEventListener('click', () => {
+        feature.setViewState('error');
+      });
+
+      root.addEventListener('review:retry-analysis', () => {
+        shell.showToast('Đang gọi lại API...', 'info');
+        setTimeout(() => {
+          feature.setViewState('default');
+          shell.showToast('Tải thành công.', 'success');
+        }, 1500);
       });
     </script>
   </body>

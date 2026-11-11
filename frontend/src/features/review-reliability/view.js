@@ -1,6 +1,7 @@
+// src/features/review-reliability/view.js
+
 import { escapeHtml } from '../../core/dom.js';
 import { analyzeReviewReliabilityMock } from './algorithm.js';
-import { MOCK_REVIEWS_SCENARIOS } from './mock-data.js';
 
 const REVIEW_STATUS_CONFIG = Object.freeze({
   normal: { label: 'Tín hiệu đánh giá ổn định', className: 'review-badge--low' },
@@ -12,7 +13,7 @@ const REVIEW_STATUS_CONFIG = Object.freeze({
 export function renderReviewBadge(summary) {
   if (!summary) return '';
 
-  if (summary.evidenceStatus === 'insufficient_evidence') {
+  if (summary.evidenceStatus === 'insufficient_evidence' || summary.status === 'insufficient_evidence') {
     const config = REVIEW_STATUS_CONFIG.insufficient_evidence;
     return `<span class="review-badge ${config.className}" aria-label="Trạng thái: ${escapeHtml(config.label)}">${escapeHtml(config.label)}</span>`;
   }
@@ -20,7 +21,10 @@ export function renderReviewBadge(summary) {
   const isSuspicious = summary.riskLevel === 'medium' || summary.riskLevel === 'high';
   const configKey = isSuspicious ? (summary.riskLevel === 'high' ? 'high_risk' : 'potentially_suspicious') : 'normal';
   const config = REVIEW_STATUS_CONFIG[configKey];
-  const confidenceText = `Độ tự tin: ${Math.round((summary.confidence || 0) * 100)}%`;
+  
+  // Xử lý an toàn khi confidence bị null
+  const confidencePercent = summary.confidence != null ? Math.round(summary.confidence * 100) : 0;
+  const confidenceText = `Độ tự tin: ${confidencePercent}%`;
 
   return `
     <div class="review-badge ${config.className}" role="status" aria-label="${escapeHtml(config.label)}, ${escapeHtml(confidenceText)}">
@@ -37,7 +41,7 @@ export function renderReviewExplanation(summary) {
     <div class="review-explanation" data-role="review-explanation">
       <div class="review-explanation__heading">
         <span>Chi tiết tín hiệu phân tích</span>
-        <span>${summary.analyzedCount} đánh giá</span>
+        <span>Dựa trên ${summary.analyzedCount || 0} đánh giá</span>
       </div>
       <ul class="review-signal-list" aria-label="Các dấu hiệu được hệ thống AI nhận diện">
         ${summary.reasons.map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}
@@ -46,24 +50,34 @@ export function renderReviewExplanation(summary) {
   `;
 }
 
+function formatDate(isoString) {
+  if (!isoString) return 'Chưa rõ';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return 'Gần đây';
+  }
+}
+
 export function createReviewReliabilityView({
-  initialScenario = 'normal',
   onOpenFeedback,
   reviewsData = null,
   summaryData = null,
   restaurant = null,
 } = {}) {
   let root = null;
-  let activeScenario = reviewsData || summaryData ? 'custom' : initialScenario;
-  let currentReviews = reviewsData ?? (MOCK_REVIEWS_SCENARIOS[initialScenario] || []);
+  // Ưu tiên dùng summaryData từ Backend truyền vào, nếu không có mới dùng mock
   let currentSummary = summaryData;
+  let currentReviews = reviewsData;
   let viewState = 'default'; // 'default' | 'loading' | 'error'
 
   function renderSystemStateBlock() {
     if (viewState === 'loading') {
       return `
         <div class="review-notice review-notice--info" role="status" aria-live="polite">
-          <strong>Đang tải và phân tích siêu dữ liệu đánh giá...</strong>
+          <div class="ui-spinner" aria-hidden="true"></div>
+          <strong>Đang tải và phân tích dữ liệu đánh giá...</strong>
         </div>
       `;
     }
@@ -71,10 +85,10 @@ export function createReviewReliabilityView({
     if (viewState === 'error') {
       return `
         <div class="review-system-state" role="alert">
-          <p class="review-hero__kicker">Lỗi kết nối AI (Error state)</p>
+          <p class="review-hero__kicker">Lỗi dịch vụ (Provider Error)</p>
           <h2>Không thể phân tích độ tin cậy lúc này</h2>
-          <p>Dịch vụ phân tích NLP đang phản hồi chậm. Vui lòng thử lại sau.</p>
-          <button type="button" class="ui-button ui-button--primary" data-action="recover-default">
+          <p>Dịch vụ phân tích NLP đang phản hồi chậm hoặc gián đoạn. Vui lòng thử lại sau.</p>
+          <button type="button" class="ui-button ui-button--outline" data-action="retry-analysis">
             Thử tải lại kết quả
           </button>
         </div>
@@ -85,6 +99,7 @@ export function createReviewReliabilityView({
   }
 
   function renderTemplate() {
+    // Lấy summary hiển thị: Nếu chưa có data thật thì dùng thuật toán mock
     const summary = viewState === 'default'
       ? (currentSummary ?? analyzeReviewReliabilityMock(currentReviews))
       : null;
@@ -93,46 +108,19 @@ export function createReviewReliabilityView({
       <section class="review-section" aria-labelledby="review-page-title">
         <header class="review-hero">
           <div>
-            <p class="review-hero__kicker">Feature E · AI Review Reliability</p>
+            <p class="review-hero__kicker">AI Review Reliability</p>
             <h2 class="review-hero__title" id="review-page-title">Phân tích Độ tin cậy Đánh giá</h2>
             ${restaurant ? `<p class="review-context">Quán đang xem: <strong>${escapeHtml(restaurant.name)}</strong></p>` : ''}
           </div>
           ${summary ? renderReviewBadge(summary) : ''}
         </header>
 
-        <!-- Thanh công cụ chuyển đổi Mock Data giống view_2.js -->
-        <div class="review-scenario-bar" role="group" aria-label="Chuyển kịch bản dữ liệu mẫu">
-          <button type="button" class="review-scenario-btn ${activeScenario === 'normal' ? 'review-scenario-btn--active' : ''}" data-action="switch-scenario" data-scenario="normal">
-            1. Bình thường
-          </button>
-          <button type="button" class="review-scenario-btn ${activeScenario === 'suspicious_burst' ? 'review-scenario-btn--active' : ''}" data-action="switch-scenario" data-scenario="suspicious_burst">
-            2. Spam & Burst
-          </button>
-          <button type="button" class="review-scenario-btn ${activeScenario === 'insufficient' ? 'review-scenario-btn--active' : ''}" data-action="switch-scenario" data-scenario="insufficient">
-            3. Thiếu dữ liệu
-          </button>
-        </div>
-
-        <!-- Thanh công cụ chuyển đổi State giống view_2.js -->
-        <div class="review-state-switcher" role="group" aria-label="Kiểm thử các trạng thái hệ thống">
-          <span>Trạng thái UI:</span>
-          ${[
-            { id: 'default', label: 'Mặc định' },
-            { id: 'loading', label: 'Loading' },
-            { id: 'error', label: 'Provider Error' },
-          ].map(st => `
-            <button type="button" class="review-state-chip ${viewState === st.id ? 'review-state-chip--active' : ''}" data-action="set-state" data-state="${st.id}">
-              ${escapeHtml(st.label)}
-            </button>
-          `).join('')}
-        </div>
-
         ${renderSystemStateBlock()}
 
         ${summary && viewState === 'default' ? `
           <div class="review-content" data-role="review-content" aria-live="polite">
             <p class="review-meta">
-              Cập nhật lần cuối: ${escapeHtml(summary.updatedAt)}
+              Thời gian phân tích: ${escapeHtml(formatDate(summary.analyzedAt))}
             </p>
             ${renderReviewExplanation(summary)}
           </div>
@@ -158,32 +146,20 @@ export function createReviewReliabilityView({
 
     const action = button.dataset.action;
 
-    if (action === 'switch-scenario') {
-      activeScenario = button.dataset.scenario;
-      currentReviews = MOCK_REVIEWS_SCENARIOS[activeScenario] || [];
-      currentSummary = null;
-      viewState = 'default';
-      rerender();
-      return;
-    }
-
-    if (action === 'set-state') {
-      viewState = button.dataset.state || 'default';
-      rerender();
-      return;
-    }
-
-    if (action === 'recover-default') {
-      viewState = 'default';
-      rerender();
-      return;
-    }
-
     if (action === 'report-feedback') {
       onOpenFeedback?.({
         targetType: 'review_reliability',
-        targetId: restaurant?.id ?? 'current-restaurant-reviews'
+        targetId: restaurant?.id ?? 'unknown'
       });
+    }
+
+    if (action === 'retry-analysis') {
+      // Bắn event ra ngoài để App Shell hoặc api.js bắt và gọi lại luồng fetch
+      const customEvent = new CustomEvent('review:retry-analysis', { bubbles: true });
+      root.dispatchEvent(customEvent);
+      // Tạm chuyển sang loading để người dùng thấy phản hồi
+      viewState = 'loading';
+      rerender();
     }
   }
 
@@ -194,7 +170,6 @@ export function createReviewReliabilityView({
       }
       root = container;
       rerender();
-      // Event delegation
       root.addEventListener('click', handleClick);
     },
     unmount() {
@@ -203,27 +178,23 @@ export function createReviewReliabilityView({
       root.replaceChildren();
       root = null;
     },
-    setReviewsData(nextReviews) {
-      if (!nextReviews) return;
-      activeScenario = 'custom';
-      currentReviews = nextReviews;
-      currentSummary = null;
-      viewState = 'default';
-      rerender();
-    },
     setSummaryData(nextSummary) {
-      if (!nextSummary) return;
-      activeScenario = 'custom';
       currentSummary = nextSummary;
       viewState = 'default';
       rerender();
     },
-    getSummary() {
-      return currentSummary ?? analyzeReviewReliabilityMock(currentReviews);
+    setReviewsData(nextReviews) {
+      currentReviews = nextReviews;
+      currentSummary = null; // Clear summary cũ để ép render lại bằng mock fallback (nếu cần)
+      viewState = 'default';
+      rerender();
     },
     setViewState(state) {
       viewState = state;
       rerender();
+    },
+    getSummary() {
+      return currentSummary ?? analyzeReviewReliabilityMock(currentReviews);
     }
   };
 }
