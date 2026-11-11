@@ -19,7 +19,7 @@ def normalize_menu_output(
     raw_output: dict,
     restaurant_id: str,
     menu_version_id: str,
-    source_type: str = "ocr",
+    source_type="ocr_text_pipeline",
 ) -> NormalizedMenu:
     items = []
 
