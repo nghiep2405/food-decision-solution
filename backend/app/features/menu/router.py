@@ -5,6 +5,7 @@ from app.features.menu.ocr_service import (
     extract_menu_visual,
     extract_menu_text_pipeline,
 )
+from app.features.menu.ai_client import structure_menu_text
 from fastapi import APIRouter, HTTPException
 
 from app.data.database import DATA_ROOT, connect_database
@@ -171,15 +172,6 @@ async def upload_menu_for_ocr(
     # Chỉ thực hiện OCR khi có AI client tương ứng.
     # Không tạo kết quả OCR giả.
 
-    if method == "text_pipeline":
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Đã lưu ảnh menu, nhưng Text Pipeline "
-                "chưa được kết nối với AI text structurer."
-            ),
-        )
-
     if method == "visual":
         if not all(
             [
@@ -200,11 +192,21 @@ async def upload_menu_for_ocr(
         start = time.perf_counter()
 
         try:
-            menu = extract_menu_visual(
-                image_bytes=image_bytes,
-                restaurant_id=restaurant_id,
-                menu_version_id=menu_version_id,
-            )
+            
+            if method == "visual":
+                menu = extract_menu_visual(
+                    image_bytes=image_bytes,
+                    restaurant_id=restaurant_id,
+                    menu_version_id=menu_version_id,
+                )
+            else:
+                menu = extract_menu_text_pipeline(
+                    image_bytes=image_bytes,
+                    restaurant_id=restaurant_id,
+                    menu_version_id=menu_version_id,
+                    text_structurer=structure_menu_text,
+                )
+    
 
             latency_ms = int(
                 (time.perf_counter() - start) * 1000
@@ -212,7 +214,7 @@ async def upload_menu_for_ocr(
 
             run_id = record_ocr_run(
                 menu_asset_id=asset_id,
-                method="visual",
+                method=method,
                 model_version=os.getenv(
                     "FACULTY_AI_MODEL", "unknown"
                 ),
