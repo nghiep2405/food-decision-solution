@@ -239,3 +239,49 @@ def extract_menu_visual(
 
     return menu
 
+from typing import Callable
+
+
+def extract_menu_text_pipeline(
+    image_bytes: bytes,
+    restaurant_id: str,
+    menu_version_id: str,
+    text_structurer: Callable[[str], dict],
+) -> NormalizedMenu:
+    """
+    Pipeline:
+    1. Tesseract đọc văn bản từ ảnh.
+    2. AI client chuyển văn bản thành JSON.
+    3. Normalizer chuyển JSON thành NormalizedMenu.
+
+    text_structurer có thể là fake client khi phát triển
+    hoặc Faculty AI client khi tích hợp thật.
+    """
+
+    raw_text = run_tesseract_ocr(image_bytes)
+
+    if not raw_text:
+        raise ValueError(
+            "Tesseract không tìm thấy văn bản trong ảnh."
+        )
+
+    raw_output = text_structurer(raw_text)
+
+    if not isinstance(raw_output, dict):
+        raise ValueError(
+            "AI client phải trả về một JSON object."
+        )
+
+    if not isinstance(raw_output.get("items"), list):
+        raise ValueError(
+            "Kết quả phải có trường items dạng danh sách."
+        )
+
+    return normalize_menu_output(
+        raw_output=raw_output,
+        restaurant_id=restaurant_id,
+        menu_version_id=menu_version_id,
+        source_type="ocr",
+    )
+
+
