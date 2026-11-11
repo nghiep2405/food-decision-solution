@@ -117,3 +117,125 @@ def run_tesseract_ocr(image_bytes: bytes) -> str:
         raise ValueError(
             f"Không thể đọc nội dung ảnh menu: {error}"
         ) from error
+
+import base64
+import json
+import os
+import time
+
+import httpx
+
+
+def extract_menu_visual(
+    image_bytes: bytes,
+    restaurant_id: str,
+    menu_version_id: str,
+) -> NormalizedMenu:
+    """
+    Gửi ảnh menu trực tiếp tới Faculty AI API.
+    Trả về menu theo contract dùng chung.
+    """
+    if not image_bytes:
+        raise ValueError("Ảnh menu không được để trống.")
+
+    api_url = os.getenv("FACULTY_AI_API_URL")
+    api_key = os.getenv("FACULTY_AI_API_KEY")
+    model = os.getenv("FACULTY_AI_MODEL")
+
+    if not all([api_url, api_key, model]):
+        raise ValueError("Thiếu cấu hình Faculty AI API.")
+
+    image = Image.open(BytesIO(image_bytes))
+    image.verify()
+
+    encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+
+    prompt = """
+    Đọc thực đơn trong ảnh và trả về JSON hợp lệ.
+
+    Chỉ lấy thông tin nhìn thấy trong ảnh.
+    Không tự đoán tên món hoặc giá.
+
+    JSON format:
+    {
+      "items": [
+        {
+          "dishName": "Tên món",
+          "normalizedName": "Tên chuẩn hóa",
+          "category": null,
+          "description": null,
+          "confidence": null,
+          "variants": [
+            {
+              "name": "Mặc định",
+              "price": null,
+              "priceMin": null,
+              "priceMax": null,
+              "currency": "VND",
+              "confidence": null
+            }
+          ]
+        }
+      ]
+    }
+
+    Nếu không đọc được giá, dùng null.
+    Chỉ trả JSON, không thêm Markdown.
+    """
+
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": (
+                                "data:image/jpeg;base64,"
+                                + encoded_image
+                            )
+                        },
+                    },
+                ],
+            }
+        ],
+        "temperature": 0,
+    }
+
+    start = time.perf_counter()
+
+    with httpx.Client(timeout=60.0) as client:
+        response = client.post(
+            api_url,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+        )
+        response.raise_for_status()
+
+    latency_ms = int(
+        (time.perf_counter() - start) * 1000
+    )
+
+    result = response.json()
+    content = result["choices"][0]["message"]["content"]
+
+    if isinstance(content, str):
+        raw_output = json.loads(content)
+    else:
+        raise ValueError("Faculty AI không trả JSON dạng text.")
+
+    menu = normalize_menu_output(
+        raw_output=raw_output,
+        restaurant_id=restaurant_id,
+        menu_version_id=menu_version_id,
+        source_type="ocr",
+    )
+
+    return menu
+
