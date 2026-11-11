@@ -1,19 +1,68 @@
+
 {
-  "image_file": "replace-with-permitted-menu-image.jpg",
-  "restaurant_id": "replace-with-existing-restaurant-id",
-  "annotator": "manual",
-  "items": [
+  "dataset_name": "mvp06_menu_ocr_evaluation",
+  "annotation_status": "complete",
+  "dataset_type": "synthetic_fixture",
+  "samples": [
     {
-      "dishName": "Tên món trong ảnh",
-      "category": null,
-      "variants": [
-        {
-          "name": "Mặc định",
-          "price": null,
-          "priceMin": null,
-          "priceMax": null,
-          "currency": "VND"
-        }
+      "image": "menu_01_synthetic.png",
+      "restaurant_id": "quan-goc-hue",
+      "source_type": "synthetic_fixture",
+      "items": [
+        {"dishName": "Bún bò Huế", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Bún giò heo", "priceMin": 50000, "priceMax": 50000, "currency": "VND"},
+        {"dishName": "Bánh canh Nam Phổ", "priceMin": 40000, "priceMax": 40000, "currency": "VND"},
+        {"dishName": "Cơm hến", "priceMin": 35000, "priceMax": 35000, "currency": "VND"},
+        {"dishName": "Bánh bèo chén", "priceMin": 25000, "priceMax": 25000, "currency": "VND"},
+        {"dishName": "Bánh nậm", "priceMin": 30000, "priceMax": 30000, "currency": "VND"},
+        {"dishName": "Trà cung đình", "priceMin": 20000, "priceMax": 20000, "currency": "VND"},
+        {"dishName": "Nước sả chanh", "priceMin": 15000, "priceMax": 15000, "currency": "VND"},
+        {"dishName": "Nước suối", "priceMin": 10000, "priceMax": 10000, "currency": "VND"}
+      ]
+    },
+    {
+      "image": "menu_02_synthetic.png",
+      "restaurant_id": "quan-an-viet",
+      "source_type": "synthetic_fixture",
+      "items": [
+        {"dishName": "Phở bò", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Bún bò Huế", "priceMin": 50000, "priceMax": 50000, "currency": "VND"},
+        {"dishName": "Bún riêu cua", "priceMin": 40000, "priceMax": 40000, "currency": "VND"},
+        {"dishName": "Hủ tiếu nam vang", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Cơm sườn", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Cơm gà xối mỡ", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Cơm chiên hải sản", "priceMin": 50000, "priceMax": 50000, "currency": "VND"},
+        {"dishName": "Cơm bò lúc lắc", "priceMin": 55000, "priceMax": 55000, "currency": "VND"},
+        {"dishName": "Chả giò (4 cuốn)", "priceMin": 20000, "priceMax": 20000, "currency": "VND"},
+        {"dishName": "Trứng ốp la", "priceMin": 10000, "priceMax": 10000, "currency": "VND"},
+        {"dishName": "Rau sống thêm", "priceMin": 5000, "priceMax": 5000, "currency": "VND"},
+        {"dishName": "Trà đá", "priceMin": 3000, "priceMax": 3000, "currency": "VND"},
+        {"dishName": "Trà chanh", "priceMin": 15000, "priceMax": 15000, "currency": "VND"},
+        {"dishName": "Nước ngọt (lon)", "priceMin": 15000, "priceMax": 15000, "currency": "VND"},
+        {"dishName": "Nước suối", "priceMin": 10000, "priceMax": 10000, "currency": "VND"}
+      ]
+    },
+    {
+      "image": "menu_03_synthetic.png",
+      "restaurant_id": "quan-ngon-ha-noi",
+      "source_type": "synthetic_fixture",
+      "items": [
+        {"dishName": "Phở bò tái", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Phở bò chín", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Phở bò đặc biệt", "priceMin": 55000, "priceMax": 55000, "currency": "VND"},
+        {"dishName": "Phở gà", "priceMin": 40000, "priceMax": 40000, "currency": "VND"},
+        {"dishName": "Bún chả Hà Nội", "priceMin": 50000, "priceMax": 50000, "currency": "VND"},
+        {"dishName": "Bún đậu mắm tôm", "priceMin": 45000, "priceMax": 45000, "currency": "VND"},
+        {"dishName": "Bún nem rán", "priceMin": 48000, "priceMax": 48000, "currency": "VND"},
+        {"dishName": "Cơm rang dưa bò", "priceMin": 50000, "priceMax": 50000, "currency": "VND"},
+        {"dishName": "Cơm rang hải sản", "priceMin": 55000, "priceMax": 55000, "currency": "VND"},
+        {"dishName": "Cơm gà xối mỡ", "priceMin": 48000, "priceMax": 48000, "currency": "VND"},
+        {"dishName": "Trà đá", "priceMin": 5000, "priceMax": 5000, "currency": "VND"},
+        {"dishName": "Trà chanh", "priceMin": 15000, "priceMax": 15000, "currency": "VND"},
+        {"dishName": "Nước sấu", "priceMin": 18000, "priceMax": 18000, "currency": "VND"},
+        {"dishName": "Nước mơ", "priceMin": 18000, "priceMax": 18000, "currency": "VND"},
+        {"dishName": "Coca-Cola", "priceMin": 20000, "priceMax": 20000, "currency": "VND"},
+        {"dishName": "Nước suối", "priceMin": 10000, "priceMax": 10000, "currency": "VND"}
       ]
     }
   ]
