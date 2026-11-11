@@ -1,0 +1,7 @@
+
+{
+  "dataset_name": "mvp06_menu_ocr_evaluation",
+  "description": "Ground truth for comparing Visual OCR and Text Pipeline",
+  "annotation_status": "pending",
+  "samples": []
+}
