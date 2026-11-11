@@ -317,6 +317,6 @@ def extract_menu_text_pipeline(
         menu_version_id=menu_version_id,
         source_type="ocr_text_pipeline",
     )
-    )
+    
 
 
