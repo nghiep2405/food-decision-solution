@@ -9,14 +9,13 @@ export {
 } from './algorithm.js';
 
 export { 
-  renderReviewBadge, 
-  renderReviewExplanation 
+  renderReviewBadge
 } from './view.js';
 
 /**
  * Hàm khởi tạo (Mount) Feature vào DOM
  * @param {HTMLElement} container - Nơi sẽ render UI của feature
- * @param {Object} options - Các tùy chọn, ví dụ hook onOpenFeedback
+ * @param {Object} options - Dữ liệu nhà hàng và kết quả phân tích từ backend
  * @returns {Object} instance của feature để App có thể tương tác
  */
 export function mountReviewReliability(container, options = {}) {

@@ -20,7 +20,7 @@ Bao gồm hai thuật toán chính xử lý dữ liệu và một Agent tổng h
 
 ## 3. Đặc tả API Contract
 
-**Endpoint:** `POST /api/reviews/analyze`
+**Endpoint:** `POST /api/v1/reviews/analyze`
 
 ### Input (Request Body)
 * `restaurantId` (string, bắt buộc): Mã định danh của nhà hàng.
@@ -35,6 +35,8 @@ Bao gồm hai thuật toán chính xử lý dữ liệu và một Agent tổng h
 * `analyzedCount` (int): Tổng số lượng review đưa vào phân tích.
 * `evidenceStatus` (string): Trạng thái dữ liệu `sufficient` hoặc `insufficient_evidence`.
 * `analyzedAt` (string): Thời gian phân tích (ISO 8601).
+* `signalCounts` (object): Số tín hiệu của `textSimilarity` và `metadataAnomaly`.
+* `signals` (list[object]): Bằng chứng có cấu trúc gồm phương pháp, review ID, score, phần trăm tương đồng, rating và các cờ bất thường. Frontend dùng trực tiếp dữ liệu này để vẽ biểu đồ; không phân tích ngược chuỗi `reasons`.
 
 ## 4. Xử lý Edge Cases (Trường hợp đặc biệt)
 * **Thiếu dữ liệu (Insufficient Evidence):** Nếu nhà hàng có ít hơn 2 bài đánh giá, hệ thống sẽ bỏ qua bước chạy thuật toán và AI, lập tức trả về status `insufficient_evidence` và risk_level `null`.

@@ -1,6 +1,5 @@
 import { escapeHtml, formatVnd } from '../../core/dom.js';
-import { buildComparisonRows, rankRestaurantCandidates } from './algorithm.js';
-import { MOCK_CANDIDATE_RESTAURANTS, SCENARIO_CONTEXTS } from './mock-data.js';
+import { buildComparisonRows } from './algorithm.js';
 
 const VERIFICATION_BADGES = Object.freeze({
   verified: { label: 'Đã xác minh', className: 'results-status-badge--verified' },
@@ -178,8 +177,7 @@ function renderRestaurantCard(item, { selectedId, comparedIds }) {
   // 3. distance/time + estimated price/person (no 0 km / 0 phút / 0 đ for missing)
   // 4. matching dishes
   // 5. rank explanation or warning
-  // 6. freshness/source meta
-  // 7. actions: detail, select, compare
+  // 6. actions: detail, select, compare
 
   const distanceText = Number.isFinite(r.distanceKm) ? `${r.distanceKm} km` : 'Chưa có dữ liệu';
   const timeText = Number.isFinite(r.travelMinutes)
@@ -195,11 +193,6 @@ function renderRestaurantCard(item, { selectedId, comparedIds }) {
       : item.reviewSummary?.evidenceStatus === 'insufficient_evidence'
         ? `<span class="results-status-badge results-status-badge--insufficient">Review: Chưa đủ bằng chứng</span>`
         : '';
-
-  const allWarnings = [...(r.warnings ?? [])];
-  if (item.reviewSummary?.status === 'potentially_suspicious' && item.reviewSummary.reasons?.[0]) {
-    allWarnings.push(item.reviewSummary.reasons[0]);
-  }
 
   return `
     <article
@@ -253,23 +246,6 @@ function renderRestaurantCard(item, { selectedId, comparedIds }) {
 
       ${renderRankExplanation(item)}
 
-      ${
-        allWarnings.length > 0
-          ? `
-            <div class="results-warnings" aria-label="Cảnh báo chất lượng dữ liệu">
-              ${allWarnings
-                .map((w) => `<p class="results-warning-box">! ${escapeHtml(w)}</p>`)
-                .join('')}
-            </div>
-          `
-          : ''
-      }
-
-      <div class="results-card__meta">
-        <span>Nguồn: ${escapeHtml(r.source ?? 'Chưa rõ nguồn')}</span>
-        <span>${r.updatedAt ? `Cập nhật: ${escapeHtml(r.updatedAt)}` : 'Chưa rõ ngày cập nhật'}</span>
-      </div>
-
       <div class="results-card__actions">
         <button
           type="button"
@@ -304,61 +280,25 @@ function renderRestaurantCard(item, { selectedId, comparedIds }) {
 
 export function createResultsView({
   searchContext: initialSearchContext = null,
-  candidates: initialCandidates = MOCK_CANDIDATE_RESTAURANTS,
-  rankedItems: initialRankedItems = null,
-  initialScenario = 'recommendation',
+  rankedItems: initialRankedItems = [],
+  errorMessage = null,
   onSelectRestaurant,
   onOpenDetail,
   onOpenFeedback,
   onChangeSearchContext,
+  onRetry,
 } = {}) {
   let root = null;
-  let activeScenario = initialSearchContext ? 'custom' : initialScenario;
-  let searchContext =
-    initialSearchContext ?? SCENARIO_CONTEXTS[initialScenario] ?? SCENARIO_CONTEXTS.recommendation;
-  let candidates = [...initialCandidates];
-  const backendRankedItems = Array.isArray(initialRankedItems) ? [...initialRankedItems] : null;
+  let searchContext = initialSearchContext ?? {};
+  const backendRankedItems = Array.isArray(initialRankedItems) ? [...initialRankedItems] : [];
   let sortBy = 'recommended';
   let includeUnverified = true;
-  let viewState = 'default'; // 'default' | 'loading' | 'empty' | 'partial' | 'missing-signal' | 'error'
+  let viewState = errorMessage ? 'error' : 'default';
   let selectedId = null;
-  let comparedIds = backendRankedItems?.slice(0, 2).map((item) => item.restaurant.id)
-    ?? ['quan-goc-hue', 'bep-nha-an'];
+  let comparedIds = backendRankedItems.slice(0, 2).map((item) => item.restaurant.id);
   let compareBannerMessage = null;
 
-  function getActiveCandidates() {
-    if (viewState === 'empty') return [];
-    if (viewState === 'missing-signal') {
-      return candidates.map((c) => ({
-        ...c,
-        travelMinutes: null,
-        reviewSummary: {
-          status: 'insufficient_evidence',
-          riskLevel: null,
-          confidence: null,
-          reasons: ['Dịch vụ phân tích review tạm ngưng; không hạ điểm quán khi thiếu tín hiệu.'],
-          analyzedCount: 0,
-          evidenceStatus: 'insufficient_evidence',
-          updatedAt: null,
-        },
-      }));
-    }
-    return candidates;
-  }
-
   function buildRankedResults() {
-    const useBackendRanking =
-      activeScenario === 'custom' &&
-      backendRankedItems &&
-      (viewState === 'default' || viewState === 'partial');
-
-    if (!useBackendRanking) {
-      return rankRestaurantCandidates(getActiveCandidates(), searchContext, {
-        sortBy,
-        includeUnverified,
-      });
-    }
-
     const ranked = backendRankedItems.filter(
       (item) => includeUnverified || !item.isUnverifiedAlternative,
     );
@@ -405,7 +345,7 @@ export function createResultsView({
         <div class="results-system-state" role="alert">
           <p class="results-hero__kicker">Lỗi kết nối nguồn dữ liệu (Error state)</p>
           <h2>Không tải được danh sách xếp hạng lúc này</h2>
-          <p>Dịch vụ tìm kiếm hoặc định tuyến đang phản hồi chậm. Bạn có thể thử tải lại hoặc điều chỉnh vùng tìm kiếm.</p>
+          <p>${escapeHtml(errorMessage ?? 'Dịch vụ backend đang không khả dụng. Bạn có thể thử lại hoặc điều chỉnh vùng tìm kiếm.')}</p>
           <button type="button" class="results-btn results-btn--primary" data-action="recover-default">
             Thử tải lại kết quả
           </button>
@@ -473,58 +413,6 @@ export function createResultsView({
           }
         </header>
 
-        <div class="results-scenario-bar" role="group" aria-label="Chuyển kịch bản dữ liệu mẫu">
-          <button
-            type="button"
-            class="results-scenario-btn ${activeScenario === 'direct' ? 'results-scenario-btn--active' : ''}"
-            data-action="switch-scenario"
-            data-scenario="direct"
-          >
-            1. Direct Search (“bún bò”)
-          </button>
-          <button
-            type="button"
-            class="results-scenario-btn ${activeScenario === 'recommendation' ? 'results-scenario-btn--active' : ''}"
-            data-action="switch-scenario"
-            data-scenario="recommendation"
-          >
-            2. Recommendation (Có lịch sử)
-          </button>
-          <button
-            type="button"
-            class="results-scenario-btn ${activeScenario === 'cold-start' ? 'results-scenario-btn--active' : ''}"
-            data-action="switch-scenario"
-            data-scenario="cold-start"
-          >
-            3. Cold-start (Người dùng mới)
-          </button>
-        </div>
-
-        <div class="results-state-switcher" role="group" aria-label="Kiểm thử các trạng thái hệ thống BR-10">
-          <span>Trạng thái UI (BR-10):</span>
-          ${[
-            { id: 'default', label: 'Đầy đủ / Mặc định' },
-            { id: 'partial', label: 'Partial ranking (Một phần chưa xác minh)' },
-            { id: 'missing-signal', label: 'Missing signal (Mất route & review)' },
-            { id: 'empty', label: 'Empty (Không có kết quả)' },
-            { id: 'loading', label: 'Loading' },
-            { id: 'error', label: 'Provider Error' },
-          ]
-            .map(
-              (st) => `
-                <button
-                  type="button"
-                  class="results-state-chip ${viewState === st.id ? 'results-state-chip--active' : ''}"
-                  data-action="set-state"
-                  data-state="${st.id}"
-                >
-                  ${escapeHtml(st.label)}
-                </button>
-              `,
-            )
-            .join('')}
-        </div>
-
         <section class="results-toolbar" aria-label="Thanh công cụ lọc và sắp xếp">
           <div class="results-toolbar__controls">
             <label class="results-control-group">
@@ -534,16 +422,6 @@ export function createResultsView({
                 <option value="distance" ${sortBy === 'distance' ? 'selected' : ''}>Khoảng cách gần nhất</option>
                 <option value="rating" ${sortBy === 'rating' ? 'selected' : ''}>Điểm đánh giá cao nhất</option>
                 <option value="price" ${sortBy === 'price' ? 'selected' : ''}>Giá ước tính thấp đến cao</option>
-              </select>
-            </label>
-
-            <label class="results-control-group">
-              <span class="results-control-group__label">Khu vực (Hard filter)</span>
-              <select data-role="area-select">
-                <option value="all" ${(searchContext?.location?.area ?? 'all') === 'all' ? 'selected' : ''}>Tất cả khu vực</option>
-                <option value="Quận 1" ${searchContext?.location?.area === 'Quận 1' ? 'selected' : ''}>Quận 1</option>
-                <option value="Quận 3" ${searchContext?.location?.area === 'Quận 3' ? 'selected' : ''}>Quận 3</option>
-                <option value="Bình Thạnh" ${searchContext?.location?.area === 'Bình Thạnh' ? 'selected' : ''}>Bình Thạnh</option>
               </select>
             </label>
 
@@ -632,18 +510,6 @@ export function createResultsView({
       return;
     }
 
-    if (target.matches('[data-role="area-select"]')) {
-      searchContext = {
-        ...searchContext,
-        location: {
-          ...(searchContext.location ?? {}),
-          area: target.value,
-        },
-      };
-      rerender();
-      return;
-    }
-
     if (target.matches('[data-role="toggle-unverified"]')) {
       includeUnverified = target.checked;
       rerender();
@@ -657,39 +523,14 @@ export function createResultsView({
     const action = button.dataset.action;
     compareBannerMessage = null;
 
-    if (action === 'switch-scenario') {
-      const nextScenario = button.dataset.scenario;
-      activeScenario = nextScenario;
-      searchContext = SCENARIO_CONTEXTS[nextScenario] ?? SCENARIO_CONTEXTS.recommendation;
-      viewState = 'default';
-      rerender();
-      return;
-    }
-
-    if (action === 'set-state') {
-      viewState = button.dataset.state || 'default';
-      if (viewState === 'partial') {
-        includeUnverified = true;
-      }
-      rerender();
-      return;
-    }
-
     if (action === 'recover-default') {
-      viewState = 'default';
-      rerender();
+      onRetry?.();
       return;
     }
 
     if (action === 'reset-filters') {
       includeUnverified = true;
-      viewState = 'default';
-      searchContext = {
-        ...searchContext,
-        location: { ...(searchContext.location ?? {}), area: 'all' },
-        ratingFilter: null,
-      };
-      rerender();
+      onChangeSearchContext?.(searchContext);
       return;
     }
 
@@ -775,7 +616,6 @@ export function createResultsView({
     },
     setSearchContext(nextContext) {
       if (!nextContext) return;
-      activeScenario = 'custom';
       searchContext = nextContext;
       viewState = 'default';
       rerender();

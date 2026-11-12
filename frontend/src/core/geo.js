@@ -1,4 +1,5 @@
-export const DEMO_CENTER = Object.freeze({ lat: 10.7731, lng: 106.698 });
+// Vị trí mặc định tại trung tâm TP.HCM, chỉ dùng khi người dùng chưa cấp GPS.
+export const DEFAULT_CENTER = Object.freeze({ lat: 10.7731, lng: 106.698 });
 
 export function isValidPoint(point) {
   return point != null && Number.isFinite(point.lat) && Number.isFinite(point.lng)

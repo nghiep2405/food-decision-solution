@@ -89,8 +89,9 @@ def test_run_tesseract_ocr_returns_text(monkeypatch):
 
     image_bytes = image_buffer.getvalue()
 
-    def fake_image_to_string(image, lang):
+    def fake_image_to_string(image, lang, config):
         assert lang == "vie+eng"
+        assert isinstance(config, str)
         return "  Com Tam  "
 
     monkeypatch.setattr(
@@ -109,3 +110,27 @@ def test_run_tesseract_ocr_rejects_empty_image():
 
     with pytest.raises(ValueError):
         ocr_service.run_tesseract_ocr(b"")
+
+
+def test_run_tesseract_ocr_reports_missing_runtime(monkeypatch):
+    import pytest
+
+    image_buffer = BytesIO()
+    Image.new("RGB", (20, 20), color="white").save(image_buffer, format="PNG")
+    monkeypatch.setattr(ocr_service, "configure_tesseract", lambda: None)
+    monkeypatch.setattr(
+        ocr_service.pytesseract,
+        "image_to_string",
+        lambda *args, **kwargs: (_ for _ in ()).throw(ocr_service.TesseractNotFoundError()),
+    )
+
+    with pytest.raises(ocr_service.OCRDependencyError, match="Tesseract OCR"):
+        ocr_service.run_tesseract_ocr(image_buffer.getvalue())
+
+
+def test_find_tesseract_command_uses_configured_executable(tmp_path, monkeypatch):
+    executable = tmp_path / "tesseract.exe"
+    executable.write_bytes(b"test executable placeholder")
+    monkeypatch.setenv("TESSERACT_CMD", str(executable))
+
+    assert ocr_service.find_tesseract_command() == str(executable)

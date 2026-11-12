@@ -15,4 +15,7 @@ htmlcov/
 
 data/*.db
 data/*.db-*
+data/tessdata/*.traineddata
+data/menu_uploads/
+data/processed/menus/ocr_runs/
 .tmp/

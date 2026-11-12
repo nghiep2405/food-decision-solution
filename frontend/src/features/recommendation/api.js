@@ -1,39 +1,65 @@
 import { postJson } from '../../core/api-client.js';
 
 export function toRecommendationRequest(searchContext) {
-  const coordinates = searchContext?.location?.coordinates;
+  const coordinates = searchContext?.searchCenter ?? searchContext?.location?.coordinates;
   if (!Number.isFinite(coordinates?.lat) || !Number.isFinite(coordinates?.lng)) {
-    throw new Error('Thiếu tọa độ hợp lệ để tạo gợi ý.');
+    throw new Error('Thiếu tọa độ hợp lệ để tìm quán.');
   }
 
-  const locationSource = searchContext.location.source === 'gps' ? 'gps' : 'map';
+  const locationSource = searchContext?.location?.source === 'gps' ? 'gps' : 'map';
   const center = { lat: coordinates.lat, lng: coordinates.lng };
+  const directUserLocation = Number.isFinite(searchContext?.location?.lat)
+    && Number.isFinite(searchContext?.location?.lng)
+    ? searchContext.location
+    : null;
+  const userLocation = directUserLocation ?? {
+    ...center,
+    source: locationSource,
+    accuracyMeters: null,
+    measuredAt: null,
+  };
+  const directBudget = Number.isFinite(searchContext?.budgetPerPerson)
+    ? {
+        mode: 'perPerson',
+        amount: searchContext.budgetPerPerson,
+        perPersonBudget: searchContext.budgetPerPerson,
+        totalBudget: searchContext.budgetPerPerson,
+      }
+    : null;
+  const area = searchContext?.searchArea ?? {};
+  const areaMode = area.mode ?? (area.type === 'radius' ? 'circle' : area.type) ?? 'circle';
   return {
     mode: searchContext.mode ?? 'recommendation',
     query: searchContext.query ?? null,
     preferences: searchContext.preferences ?? null,
     searchCenter: center,
     userLocation: {
-      ...center,
-      source: locationSource,
-      accuracyMeters: null,
-      measuredAt: null,
+      lat: userLocation.lat,
+      lng: userLocation.lng,
+      source: userLocation.source === 'gps' ? 'gps' : 'map',
+      accuracyMeters: userLocation.accuracyMeters ?? null,
+      measuredAt: userLocation.measuredAt ?? null,
     },
-    routeOrigin: center,
+    routeOrigin: searchContext.routeOrigin ?? center,
     searchArea: {
-      mode: 'circle',
-      radiusKm: searchContext.searchArea?.radiusKm ?? 5,
-      bounds: null,
+      mode: areaMode,
+      radiusKm: area.radiusKm ?? null,
+      bounds: area.bounds ?? null,
     },
-    budget: searchContext.budget,
+    budget: searchContext.budget ?? directBudget,
     dinerCount: searchContext.dinerCount ?? 1,
     time: searchContext.time ?? null,
     filters: {
-      minRating: searchContext.ratingFilter ?? null,
-      openNow: false,
-      sortBy: 'recommended',
+      minRating: searchContext.minRating ?? searchContext.ratingFilter ?? null,
+      openNow: Boolean(searchContext.openNow),
+      sortBy: searchContext.sortBy ?? 'recommended',
     },
-    consent: searchContext.consent ?? {},
+    consent: {
+      locationGps: userLocation.source === 'gps',
+      preferences: Boolean(searchContext?.consent?.preferences),
+      eatingHistory: Boolean(searchContext?.consent?.eatingHistory),
+      ...searchContext.consent,
+    },
     candidateSource: 'local',
   };
 }

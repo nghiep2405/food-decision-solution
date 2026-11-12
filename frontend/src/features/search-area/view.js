@@ -1,31 +1,31 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { APP_CONFIG } from '../../core/config.js';
-import { DEMO_CENTER, isValidPoint, validateSearchArea } from '../../core/geo.js';
+import { DEFAULT_CENTER, isValidPoint, validateSearchArea } from '../../core/geo.js';
 import { formatVnd } from '../../core/dom.js';
 import { requestUserLocation } from './geolocation.js';
 
-const OPENING_LABELS = { open: 'Đang mở (mẫu)', closed: 'Đang đóng (mẫu)', unknown: 'Chưa rõ giờ mở cửa' };
+const OPENING_LABELS = { open: 'Đang mở', closed: 'Đang đóng', unknown: 'Chưa rõ giờ mở cửa' };
 
 function formTemplate() {
   return `<div class="search-area-heading"><div><p class="search-area-kicker">01 / Chọn vùng tìm</p><h2>Bạn muốn ăn ở đâu?</h2></div><button type="button" class="search-area-text" data-action="reset">Đặt lại</button></div>
     <form class="search-area-form" data-role="search-form">
       <label class="search-area-field search-area-wide"><span>Món hoặc loại món <small>(tùy chọn)</small></span><input name="query" type="search" maxlength="100" placeholder="Bún bò, cơm, món chay…"></label>
-      <div class="search-area-wide search-area-location-actions"><button type="button" class="search-area-outline" data-action="locate">◎ Dùng vị trí của tôi</button><button type="button" class="search-area-text" data-action="demo-center">Về vùng mẫu TP.HCM</button></div>
+      <div class="search-area-wide search-area-location-actions"><button type="button" class="search-area-outline" data-action="locate">◎ Dùng vị trí của tôi</button><button type="button" class="search-area-text" data-action="default-center">Về trung tâm TP.HCM</button></div>
       <p class="search-area-hint search-area-wide" data-role="location-status" role="status">Chưa lấy vị trí. Bạn có thể chọn điểm trên bản đồ hoặc nhập tọa độ.</p>
-      <label class="search-area-field"><span>Vĩ độ tâm tìm <small>(bắt buộc)</small></span><input name="latitude" type="number" step="any" min="-85" max="85" required value="${DEMO_CENTER.lat}" aria-describedby="search-area-error"></label>
-      <label class="search-area-field"><span>Kinh độ tâm tìm <small>(bắt buộc)</small></span><input name="longitude" type="number" step="any" min="-180" max="180" required value="${DEMO_CENTER.lng}" aria-describedby="search-area-error"></label>
+      <label class="search-area-field"><span>Vĩ độ tâm tìm <small>(bắt buộc)</small></span><input name="latitude" type="number" step="any" min="-85" max="85" required value="${DEFAULT_CENTER.lat}" aria-describedby="search-area-error"></label>
+      <label class="search-area-field"><span>Kinh độ tâm tìm <small>(bắt buộc)</small></span><input name="longitude" type="number" step="any" min="-180" max="180" required value="${DEFAULT_CENTER.lng}" aria-describedby="search-area-error"></label>
       <label class="search-area-field search-area-wide"><span>Cách chọn vùng</span><select name="mode"><option value="circle">Bán kính quanh tâm đã chọn</option><option value="bbox">Khung bản đồ đang hiển thị</option></select></label>
       <label class="search-area-field search-area-wide" data-role="radius-field"><span>Bán kính <output data-role="radius-output">5 km</output></span><input name="radiusKm" type="range" min="0.2" max="8" step="0.2" value="5"><span class="search-area-scale"><small>0,2 km</small><small>8 km</small></span></label>
-      <label class="search-area-field"><span>Khu vực mẫu</span><select name="area"><option value="all">Tất cả khu vực</option><option value="Quận 1">Quận 1</option><option value="Quận 3">Quận 3</option><option value="Bình Thạnh">Bình Thạnh</option></select></label>
+      <label class="search-area-field"><span>Khu vực</span><select name="area"><option value="all">Tất cả khu vực</option><option value="Quận 1">Quận 1</option><option value="Quận 3">Quận 3</option><option value="Bình Thạnh">Bình Thạnh</option></select></label>
       <label class="search-area-field"><span>Ngân sách/người (đ)</span><input name="budgetPerPerson" type="number" min="0" max="10000000" step="1000" required value="150000"></label>
       <label class="search-area-field"><span>Rating tối thiểu</span><select name="minRating"><option value="0">Không giới hạn</option><option value="3">3 sao</option><option value="4">4 sao</option><option value="4.5">4,5 sao</option></select></label>
       <label class="search-area-field"><span>Sắp xếp</span><select name="sortBy"><option value="recommended">Đề xuất phù hợp</option><option value="distance">Gần tâm nhất</option><option value="rating">Rating cao nhất</option></select></label>
-      <label class="search-area-check search-area-wide"><input type="checkbox" name="openNow"><span>Chỉ quán đang mở cửa <small>(theo dữ liệu mẫu)</small></span></label>
+      <label class="search-area-check search-area-wide"><input type="checkbox" name="openNow"><span>Chỉ quán đang mở cửa <small>(khi backend có dữ liệu giờ mở cửa)</small></span></label>
       <p id="search-area-error" class="search-area-notice search-area-notice--error search-area-wide" role="alert" hidden></p>
       <button type="submit" class="search-area-primary search-area-wide" data-role="submit">Tìm quán phù hợp <span aria-hidden="true">→</span></button>
     </form>
-    <div class="search-area-data-note"><strong>Bản đồ thật · Quán minh họa</strong><p>Tọa độ quán, giá, rating và giờ mở cửa là dữ liệu mẫu. Vị trí của bạn chỉ được lấy khi bạn bấm nút và cho phép.</p><p>Tải bản đồ cần Internet. Chưa có dữ liệu lộ trình hoặc thời gian đi thực tế.</p></div>`;
+    <div class="search-area-data-note"><strong>Bản đồ OpenStreetMap · Dữ liệu quán từ backend</strong><p>Vị trí của bạn chỉ được lấy khi bạn bấm nút và cho phép. Nếu chưa cấp GPS, hệ thống dùng tâm mặc định tại trung tâm TP.HCM.</p><p>Các trường backend chưa cung cấp được hiển thị là chưa có dữ liệu.</p></div>`;
 }
 
 export function mountSearchArea(formContainer, mapContainer, options = {}) {
@@ -47,7 +47,7 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
   const retryMapButton = mapContainer.querySelector('[data-action="retry-map"]');
   const colors = getComputedStyle(formContainer);
   const token = (name) => colors.getPropertyValue(`--color-${name}`).trim();
-  let center = { ...DEMO_CENTER };
+  let center = { ...DEFAULT_CENTER };
   let userLocation = null;
   let gpsGeneration = 0;
   let programmaticMove = false;
@@ -151,7 +151,7 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
   function readContext() {
     return {
       mode: 'direct', query: field('query').value.trim(), area: field('area').value,
-      searchCenter: { ...center }, location: userLocation ? { ...userLocation } : null,
+      searchCenter: { ...center }, location: userLocation ? { ...userLocation, source: 'gps' } : null,
       routeOrigin: userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null,
       searchArea: { mode: field('mode').value, radiusKm: Number(field('radiusKm').value), bounds: field('mode').value === 'bbox' ? boundsValue() : null },
       budgetPerPerson: Number(field('budgetPerPerson').value), minRating: Number(field('minRating').value),
@@ -251,9 +251,9 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
     const heading = document.createElement('strong');
     heading.textContent = restaurant.name;
     const facts = document.createElement('p');
-    facts.textContent = `${restaurant.rating == null ? 'Chưa có rating' : `★ ${restaurant.rating} (mẫu)`} · ${formatVnd(restaurant.pricePerPerson)} · ${OPENING_LABELS[restaurant.openingStatus] || OPENING_LABELS.unknown}`;
+    facts.textContent = `${restaurant.rating == null ? 'Chưa có rating' : `★ ${restaurant.rating}`} · ${formatVnd(restaurant.pricePerPerson)} · ${OPENING_LABELS[restaurant.openingStatus] || OPENING_LABELS.unknown}`;
     const note = document.createElement('p');
-    note.textContent = restaurant.pendingReasons.length ? `Cần xác minh: ${restaurant.pendingReasons.join(' ')}` : 'Tọa độ và thông tin quán chỉ để minh họa.';
+    note.textContent = restaurant.pendingReasons.length ? `Cần xác minh: ${restaurant.pendingReasons.join(' ')}` : 'Dữ liệu quán do backend cung cấp.';
     const button = document.createElement('button');
     button.className = 'search-area-outline';
     button.type = 'button';
@@ -270,7 +270,7 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
       if (!isValidPoint(restaurant.location)) return;
       const marker = L.marker([restaurant.location.lat, restaurant.location.lng], {
         icon: markerIcon(index, restaurant.id === selectedId, restaurant.pendingReasons.length > 0),
-        title: `${index + 1}. ${restaurant.name} — tọa độ minh họa`, alt: restaurant.name,
+        title: `${index + 1}. ${restaurant.name}`, alt: restaurant.name,
       }).bindPopup(popupContent(restaurant), { autoPan: false }).addTo(restaurantLayer);
       marker.on('click', () => options.onSelectRestaurant?.(restaurant));
       marker.on('keypress', ({ originalEvent }) => {
@@ -278,7 +278,7 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
         originalEvent.preventDefault();
         options.onSelectRestaurant?.(restaurant);
       });
-      marker.getElement()?.setAttribute('aria-label', `${index + 1}. ${restaurant.name}, tọa độ minh họa`);
+      marker.getElement()?.setAttribute('aria-label', `${index + 1}. ${restaurant.name}`);
       markers.set(restaurant.id, { marker, index, restaurant });
     });
   }
@@ -321,8 +321,8 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
     userLayer.clearLayers();
     form.reset();
     error.hidden = true;
-    find('location-status').textContent = 'Đã đặt lại vùng mẫu TP.HCM. Chưa lấy vị trí người dùng.';
-    setCenter(DEMO_CENTER);
+    find('location-status').textContent = 'Đã đặt lại tâm mặc định tại TP.HCM. Chưa lấy vị trí người dùng.';
+    setCenter(DEFAULT_CENTER);
     setBusy(false);
     await search();
   }
@@ -343,7 +343,7 @@ export function mountSearchArea(formContainer, mapContainer, options = {}) {
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (action === 'locate') locate();
     if (action === 'reset') reset();
-    if (action === 'demo-center') { field('mode').value = 'circle'; setCenter(DEMO_CENTER); }
+    if (action === 'default-center') { field('mode').value = 'circle'; setCenter(DEFAULT_CENTER); }
   });
   mapContainer.addEventListener('click', (event) => {
     const action = event.target.closest('[data-action]')?.dataset.action;

@@ -24,8 +24,7 @@ Thực hiện bước **UC-06 (Rank and explain results)** và **UC-07 (View and
 ## 3. Cấu trúc file
 - `index.js`: Export `mountResults(container, options)`, `rankRestaurantCandidates`, `buildComparisonRows`.
 - `algorithm.js`: Hàm thuần thực hiện lọc cứng, chấm điểm chuẩn hóa trọng số động theo các tín hiệu sẵn có, sinh `RankedResult` và tạo dữ liệu cho `ComparePanel`.
-- `mock-data.js`: Dữ liệu mẫu cho 3 kịch bản (`direct`, `recommendation`, `cold-start`) với đầy đủ các trường hợp: quán đủ dữ liệu, quán thiếu giá, quán lỗi tuyến đường (`no-route`), quán có cảnh báo review (`potentially_suspicious`), quán `insufficient_evidence`.
-- `view.js`: Render toolbar, danh sách card kết quả, component `RankBadge`, `RankExplanation`, `ComparePanel` (tối đa 3 quán) và các trạng thái hệ thống (`loading`, `empty`, `partial`, `missing-signal`, `error`).
+- `view.js`: Render kết quả backend, toolbar, `RankBadge`, `RankExplanation`, `ComparePanel` và các trạng thái thực tế `empty`/`error`.
 - `style.css`: Sử dụng design tokens trong `global.css` và class prefix `.results-`.
 
 ## 4. Public API & Data Contract
@@ -35,8 +34,8 @@ import { mountResults } from './features/results/index.js';
 
 const resultsFeature = mountResults(container, {
   searchContext,       // SearchContext từ Search Area hoặc Recommendation
-  candidates,          // Tùy chọn: mảng RestaurantCandidate[]
-  initialScenario: 'recommendation', // 'direct' | 'recommendation' | 'cold-start'
+  rankedItems,         // RankedRestaurant[] nhận từ backend
+  errorMessage,        // lỗi backend nếu có
   onSelectRestaurant(rankedResult) {
     // Bàn giao SelectedRestaurant cho AppShell / Menu / Budget
   },

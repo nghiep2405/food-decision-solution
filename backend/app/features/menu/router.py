@@ -16,7 +16,18 @@ from PIL import Image, UnidentifiedImageError
 from app.data.database import DATA_ROOT, connect_database
 from app.data.repositories import MenuRepository, RestaurantRepository
 from app.features.menu.ai_client import structure_menu_text
-from app.features.menu.ocr_service import extract_menu_text_pipeline, extract_menu_visual
+from app.features.menu.ocr_service import (
+    OCRDependencyError,
+    extract_menu_text_pipeline,
+    extract_menu_visual,
+    find_tesseract_command,
+    tesseract_languages_available,
+)
+from app.features.menu.schemas import (
+    AdminRestaurantOption,
+    AdminRestaurantOptionsResponse,
+    OCRConfigStatus,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["menu-ocr"])
@@ -29,6 +40,73 @@ MIME_TYPES = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
 
 def utc_now():
     return datetime.now(timezone.utc).isoformat()
+
+
+@router.get(
+    "/admin/restaurants",
+    response_model=AdminRestaurantOptionsResponse,
+    tags=["admin-ocr"],
+    summary="List backend restaurants available for the OCR demo",
+)
+def list_admin_restaurants() -> AdminRestaurantOptionsResponse:
+    with connect_database() as connection:
+        restaurant_repository = RestaurantRepository(connection)
+        menu_repository = MenuRepository(connection)
+        items: list[AdminRestaurantOption] = []
+        for restaurant in restaurant_repository.list_all():
+            menu = menu_repository.get_active_menu(restaurant.id)
+            address_parts = [
+                restaurant.address_line,
+                restaurant.ward,
+                restaurant.district,
+                restaurant.city,
+            ]
+            items.append(
+                AdminRestaurantOption(
+                    id=restaurant.id,
+                    name=restaurant.name,
+                    address=", ".join(part for part in address_parts if part),
+                    data_status=restaurant.data_status.value,
+                    has_active_menu=menu is not None,
+                    active_menu_source=menu.source_type if menu else None,
+                    active_menu_updated_at=(
+                        menu.updated_at.isoformat()
+                        if menu and menu.updated_at
+                        else None
+                    ),
+                )
+            )
+    return AdminRestaurantOptionsResponse(items=items)
+
+
+@router.get(
+    "/admin/ocr/config",
+    response_model=OCRConfigStatus,
+    tags=["admin-ocr"],
+    summary="Check OCR configuration without exposing credentials",
+)
+def get_ocr_config_status() -> OCRConfigStatus:
+    api_url_configured = bool(os.getenv("FACULTY_AI_API_URL"))
+    api_key_configured = bool(os.getenv("FACULTY_AI_API_KEY"))
+    model = os.getenv("FACULTY_AI_MODEL") or None
+    model_configured = bool(model)
+    ai_configured = api_url_configured and api_key_configured and model_configured
+    tesseract_available = find_tesseract_command() is not None
+    tesseract_language = os.getenv("TESSERACT_LANG", "vie+eng")
+    tesseract_languages_ready = tesseract_languages_available(tesseract_language)
+    return OCRConfigStatus(
+        configured=ai_configured,
+        api_url_configured=api_url_configured,
+        api_key_configured=api_key_configured,
+        model_configured=model_configured,
+        model=model,
+        visual_ready=ai_configured,
+        text_pipeline_ready=(
+            ai_configured and tesseract_available and tesseract_languages_ready
+        ),
+        tesseract_available=tesseract_available,
+        tesseract_language=tesseract_language,
+    )
 
 
 @router.get("/restaurants/{restaurant_id}/menu")
@@ -150,7 +228,15 @@ async def upload_menu_for_ocr(
             "menu": menu.model_dump(mode="json", by_alias=True),
         }
     except Exception as exc:
-        logger.exception("OCR failed (asset_id=%s run_id=%s)", asset_id, run_id)
+        if isinstance(exc, OCRDependencyError):
+            logger.warning(
+                "OCR dependency unavailable (asset_id=%s run_id=%s): %s",
+                asset_id,
+                run_id,
+                exc,
+            )
+        else:
+            logger.exception("OCR failed (asset_id=%s run_id=%s)", asset_id, run_id)
         latency_ms = int((time.perf_counter() - started) * 1000)
         with connect_database() as connection:
             repository = MenuRepository(connection)
@@ -161,4 +247,6 @@ async def upload_menu_for_ocr(
                     raw_text=capture.get("raw_text"),
                 )
                 repository.update_asset_status(asset_id, "failed")
+        if isinstance(exc, OCRDependencyError):
+            raise HTTPException(503, str(exc)) from exc
         raise HTTPException(502, "Xử lý OCR thất bại; kiểm tra log backend.") from exc

@@ -82,11 +82,6 @@ function renderHome() {
       </ol>
     </section>
 
-    <aside class="home-data-note" aria-label="Lưu ý về dữ liệu">
-      <div class="home-data-note__icon" aria-hidden="true">i</div>
-      <div><strong>Thông tin minh bạch trước khi quyết định</strong><p>Dữ liệu thiếu, cũ hoặc chưa xác minh luôn được ghi rõ. Hệ thống không tự điền giá, tuyến đường hay độ tin cậy khi chưa có bằng chứng.</p></div>
-      <button class="ui-button ui-button--outline" type="button" data-action="open-data-info">Tìm hiểu</button>
-    </aside>
   `;
 }
 

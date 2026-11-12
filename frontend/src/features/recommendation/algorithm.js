@@ -1,7 +1,7 @@
 // Pure functions for validating and normalizing Recommendation Request into SearchContext.
 // No DOM or HTTP calls allowed here.
 
-import { AREA_OPTIONS } from './mock-data.js';
+import { AREA_OPTIONS } from './options.js';
 
 export function validateRecommendationInput(rawInput = {}) {
   const errors = {};
@@ -83,6 +83,10 @@ export function buildSearchContext(rawInput = {}) {
 
   const selectedAreaOption =
     AREA_OPTIONS.find((item) => item.id === rawInput.area) ?? AREA_OPTIONS[0];
+  const suppliedCoordinates = rawInput.coordinates;
+  const coordinates = Number.isFinite(suppliedCoordinates?.lat) && Number.isFinite(suppliedCoordinates?.lng)
+    ? suppliedCoordinates
+    : selectedAreaOption;
   const ratingFilterValue =
     rawInput.ratingFilter === null ||
     rawInput.ratingFilter === '' ||
@@ -105,8 +109,8 @@ export function buildSearchContext(rawInput = {}) {
       source: rawInput.locationSource === 'gps' && rawInput.consentGps ? 'gps' : 'map',
       area: selectedAreaOption.id,
       coordinates: {
-        lat: selectedAreaOption.lat,
-        lng: selectedAreaOption.lng,
+        lat: coordinates.lat,
+        lng: coordinates.lng,
       },
     },
     searchArea: {

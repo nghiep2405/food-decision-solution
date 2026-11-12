@@ -1,17 +1,34 @@
-import { getJson } from '../../core/api-client.js';
-import { APP_CONFIG } from '../../core/config.js';
-import { createMockCandidates } from './mock-data.js';
+import { fetchRecommendations } from '../recommendation/api.js';
 
-export async function fetchRestaurants({ scenario = 'full', delayMs = 250 } = {}) {
-  await new Promise((resolve) => window.setTimeout(resolve, delayMs));
-  if (scenario === 'provider-error') {
-    throw new Error('Nguồn dữ liệu đang không khả dụng (tình huống demo).');
-  }
-  const data = await getJson(APP_CONFIG.demoRestaurantDataUrl);
+function toDiscoveryCandidate(item) {
+  const restaurant = item.restaurant;
+  return {
+    ...restaurant,
+    pricePerPerson: restaurant.estimatedPricePerPerson,
+    menuVerified: restaurant.verificationStatus === 'verified',
+    menuUpdatedAt: restaurant.updatedAt,
+    dishes: restaurant.matchingDishes ?? [],
+    pendingReasons: item.isUnverifiedAlternative
+      ? [...new Set([...(restaurant.warnings ?? []), ...(item.missingSignals ?? [])])]
+      : [],
+    warning: restaurant.warnings?.[0] ?? null,
+    originDistanceKm: restaurant.distanceKm,
+    rank: item.rank,
+    score: item.score,
+    explanation: item.explanation,
+    signalsUsed: item.signalsUsed,
+    missingSignals: item.missingSignals,
+    budgetSummary: item.budgetSummary,
+    reviewSummary: item.reviewSummary,
+    isUnverifiedAlternative: item.isUnverifiedAlternative,
+  };
+}
 
-  if (!Array.isArray(data)) {
-    throw new Error('Dữ liệu quán ăn không đúng định dạng mong đợi.');
-  }
-
-  return createMockCandidates(data, scenario);
+export async function fetchRestaurants(searchContext) {
+  const result = await fetchRecommendations(searchContext);
+  return {
+    restaurants: result.items.map(toDiscoveryCandidate),
+    decisionRunId: result.decisionRunId,
+    metadata: result.metadata ?? null,
+  };
 }

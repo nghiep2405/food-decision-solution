@@ -29,7 +29,9 @@ class ReviewReliabilityService:
                 methods=[request.method],
                 analyzed_count=analyzed_count,
                 evidence_status="insufficient_evidence",
-                analyzed_at=datetime.now(timezone.utc)
+                analyzed_at=datetime.now(timezone.utc),
+                signals=[],
+                signal_counts={"textSimilarity": 0, "metadataAnomaly": 0},
             )
             self._save_analysis_run(request.restaurant_id, request.method, response, [], None, start_time)
             return response
@@ -76,7 +78,16 @@ class ReviewReliabilityService:
             methods=methods_used,
             analyzed_count=analyzed_count,
             evidence_status="sufficient",
-            analyzed_at=datetime.now(timezone.utc)
+            analyzed_at=datetime.now(timezone.utc),
+            signals=signals,
+            signal_counts={
+                "textSimilarity": sum(
+                    signal.get("method") == "textSimilarity" for signal in signals
+                ),
+                "metadataAnomaly": sum(
+                    signal.get("method") == "metadataAnomaly" for signal in signals
+                ),
+            },
         )
 
         # 5. Lưu lại lịch sử chạy vào cơ sở dữ liệu

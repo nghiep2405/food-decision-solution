@@ -1,44 +1,41 @@
 import { escapeHtml, formatVnd } from '../../core/dom.js';
 import { buildSearchContext, validateRecommendationInput } from './algorithm.js';
+import { requestUserLocation } from '../search-area/geolocation.js';
 import {
   AREA_OPTIONS,
   CUISINE_OPTIONS,
   FLAVOR_TAGS,
-  HISTORY_DISH_SAMPLES,
   OCCASION_OPTIONS,
-  RECOMMENDATION_PRESETS,
   TIME_CONTEXTS,
-} from './mock-data.js';
+} from './options.js';
 
-function clonePreset(presetKey) {
-  const base = RECOMMENDATION_PRESETS[presetKey] ?? RECOMMENDATION_PRESETS.returning;
+function createInitialState() {
   return {
-    presetId: base.id,
-    cuisines: [...base.cuisines],
-    flavors: [...base.flavors],
-    occasion: base.occasion,
-    time: base.time,
-    area: base.area,
-    locationSource: base.locationSource,
-    radiusKm: base.radiusKm,
-    budgetAmount: base.budgetAmount,
-    budgetMode: base.budgetMode,
-    dinerCount: base.dinerCount,
-    ratingFilter: base.ratingFilter,
-    consentPreferences: base.consentPreferences,
-    consentHistory: base.consentHistory,
-    consentGps: base.consentGps,
-    historyItems: [...base.historyItems],
+    cuisines: [],
+    flavors: [],
+    occasion: 'an-trua-nhanh',
+    time: 'lunch',
+    area: 'all',
+    locationSource: 'map',
+    coordinates: { lat: 10.7731, lng: 106.698 },
+    radiusKm: 5,
+    budgetAmount: null,
+    budgetMode: 'perPerson',
+    dinerCount: 1,
+    ratingFilter: null,
+    consentPreferences: false,
+    consentHistory: false,
+    consentGps: false,
+    historyItems: [],
   };
 }
 
 export function createRecommendationView({
-  initialPreset = 'returning',
   onSubmit,
   onSwitchMode,
 } = {}) {
   let root = null;
-  let state = clonePreset(initialPreset);
+  let state = createInitialState();
   let fieldErrors = {};
   let gpsStatus = 'idle'; // 'idle' | 'granted' | 'denied'
   let isSubmitting = false;
@@ -85,7 +82,7 @@ export function createRecommendationView({
         <div class="recommendation-notice recommendation-notice--success" role="status" data-role="gps-status">
           <span class="recommendation-notice__badge" aria-hidden="true">GPS</span>
           <div>
-            <strong>Đã nhận tọa độ GPS giả lập tại trung tâm TP.HCM</strong>
+            <strong>Đã nhận tọa độ GPS của thiết bị</strong>
             <div>Khoảng cách di chuyển sẽ tính từ vị trí GPS đã cấp phép của bạn.</div>
           </div>
         </div>
@@ -113,24 +110,6 @@ export function createRecommendationView({
               Cho biết khẩu vị, bối cảnh bữa ăn và phạm vi di chuyển. Hệ thống sẽ tạo tập ứng viên,
               tách bạch bộ lọc bắt buộc với tín hiệu xếp hạng và giải thích lý do từng quán xuất hiện.
             </p>
-          </div>
-          <div class="recommendation-presets" role="group" aria-label="Chuyển nhanh hồ sơ mẫu để kiểm thử">
-            <button
-              type="button"
-              class="recommendation-preset-btn ${state.presetId === 'returning' ? 'recommendation-preset-btn--active' : ''}"
-              data-action="apply-preset"
-              data-preset="returning"
-            >
-              Hồ sơ có lịch sử
-            </button>
-            <button
-              type="button"
-              class="recommendation-preset-btn ${state.presetId === 'cold-start' ? 'recommendation-preset-btn--active' : ''}"
-              data-action="apply-preset"
-              data-preset="cold-start"
-            >
-              Hồ sơ Cold-start (Mới)
-            </button>
           </div>
         </header>
 
@@ -204,13 +183,6 @@ export function createRecommendationView({
                   data-action="use-gps"
                 >
                   ⌖ Dùng GPS hiện tại
-                </button>
-                <button
-                  type="button"
-                  class="recommendation-btn recommendation-btn--outline"
-                  data-action="deny-gps"
-                >
-                  Giả lập từ chối GPS (Test BR-01)
                 </button>
               </div>
               ${renderGpsNotice()}
@@ -404,27 +376,10 @@ export function createRecommendationView({
               ${
                 state.consentHistory
                   ? `
-                    <div class="recommendation-history-box" data-role="history-picker">
-                      <p class="recommendation-block__hint">
-                        Chọn các món trong lịch sử được phép dùng làm tín hiệu tham khảo (bỏ chọn hết sẽ tự động về trạng thái Cold-start):
-                      </p>
-                      <div class="recommendation-chip-group">
-                        ${HISTORY_DISH_SAMPLES.map((dish) => {
-                          const checked = state.historyItems.includes(dish);
-                          return `
-                            <label class="recommendation-chip ${checked ? 'recommendation-chip--checked' : ''}">
-                              <input
-                                type="checkbox"
-                                name="historyItems"
-                                value="${escapeHtml(dish)}"
-                                ${checked ? 'checked' : ''}
-                              />
-                              <span>${escapeHtml(dish)}</span>
-                            </label>
-                          `;
-                        }).join('')}
-                      </div>
-                    </div>
+                    <label class="recommendation-field recommendation-field--wide" data-role="history-picker">
+                      <span class="recommendation-field__label">Các món đã từng thích <small>phân cách bằng dấu phẩy</small></span>
+                      <input name="historyText" value="${escapeHtml(state.historyItems.join(', '))}" placeholder="Ví dụ: bún bò, cơm gà" />
+                    </label>
                   `
                   : ''
               }
@@ -542,7 +497,8 @@ export function createRecommendationView({
     state.consentPreferences = form.querySelector('[name="consentPreferences"]')?.checked ?? false;
     state.consentHistory = form.querySelector('[name="consentHistory"]')?.checked ?? false;
     if (state.consentHistory && form.querySelector('[data-role="history-picker"]')) {
-      state.historyItems = formData.getAll('historyItems').map(String);
+      state.historyItems = String(formData.get('historyText') ?? '')
+        .split(',').map((item) => item.trim()).filter(Boolean);
     }
   }
 
@@ -558,11 +514,12 @@ export function createRecommendationView({
     const prevConsentHistory = state.consentHistory;
     syncFormStateFromDom();
 
-    if (!prevConsentHistory && state.consentHistory && state.historyItems.length === 0) {
-      state.historyItems = ['Bún bò Huế', 'Cơm gà Hội An'];
-    }
+    if (!prevConsentHistory && state.consentHistory) state.historyItems = [];
     if (target.name === 'area') {
       state.locationSource = 'map';
+      state.consentGps = false;
+      const selectedArea = AREA_OPTIONS.find((item) => item.id === state.area) ?? AREA_OPTIONS[0];
+      state.coordinates = { lat: selectedArea.lat, lng: selectedArea.lng };
     }
 
     const validation = validateRecommendationInput(state);
@@ -577,39 +534,30 @@ export function createRecommendationView({
     }
   }
 
-  function handleClick(event) {
+  async function handleClick(event) {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
 
     const action = button.dataset.action;
-    if (action === 'apply-preset') {
-      const presetKey = button.dataset.preset;
-      state = clonePreset(presetKey);
-      fieldErrors = {};
-      gpsStatus = 'idle';
-      rerender();
-      return;
-    }
-
     if (action === 'use-gps') {
-      gpsStatus = 'granted';
-      state.consentGps = true;
-      state.locationSource = 'gps';
-      state.area = 'Quận 1';
-      rerender();
-      return;
-    }
-
-    if (action === 'deny-gps') {
-      gpsStatus = 'denied';
-      state.consentGps = false;
-      state.locationSource = 'map';
+      button.disabled = true;
+      try {
+        const location = await requestUserLocation(navigator.geolocation, window.isSecureContext);
+        state.coordinates = { lat: location.lat, lng: location.lng };
+        gpsStatus = 'granted';
+        state.consentGps = true;
+        state.locationSource = 'gps';
+      } catch {
+        gpsStatus = 'denied';
+        state.consentGps = false;
+        state.locationSource = 'map';
+      }
       rerender();
       return;
     }
 
     if (action === 'reset-form') {
-      state = clonePreset(initialPreset);
+      state = createInitialState();
       fieldErrors = {};
       gpsStatus = 'idle';
       rerender();

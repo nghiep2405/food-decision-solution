@@ -21,6 +21,7 @@ Các URL dưới đây dùng cổng mặc định `5173`. Nếu Vite báo cổng
 | Restaurant Detail / Menu | <http://127.0.0.1:5173/#/restaurant-detail> | UC-03: xem menu, trạng thái xác minh và chọn món. Khi đi từ Search/Results, quán đã chọn được truyền sang màn hình này. |
 | Budget Planner | <http://127.0.0.1:5173/#/budget> | UC-04: tính tổng, chi phí mỗi người và độ phù hợp ngân sách. Khi đi từ Menu, danh sách món được giữ lại. |
 | Review Reliability | <http://127.0.0.1:5173/#/review-reliability> | UC-05: xem mức rủi ro, confidence, tín hiệu giải thích hoặc trạng thái chưa đủ bằng chứng. Khi đi từ Ranked Results, summary của quán được truyền sang màn hình này. |
+| Admin Menu OCR | <http://127.0.0.1:5173/#/admin/ocr> | Chọn quán từ database, chọn Visual AI hoặc Text Pipeline, tải ảnh menu và xem menu JSON đã chuẩn hóa. OCR thành công sẽ lưu và kích hoạt menu mới cho quán. |
 
 Luồng nên review:
 
@@ -29,6 +30,7 @@ Home -> Search -> Menu -> Budget
 Home -> Search -> Menu -> Review Reliability
 Home -> Recommendation -> Ranked Results -> Menu -> Budget
 Home -> Recommendation -> Ranked Results -> Menu -> Review Reliability
+Admin OCR -> Upload menu image -> Normalized menu + JSON -> Restaurant active menu
 ```
 
 ### Kịch bản kiểm tra Search Area và Restaurant Discovery

@@ -14,6 +14,7 @@
 .restaurant-card:focus-visible { outline: 3px solid var(--color-accent-strong); outline-offset: 2px; }
 .restaurant-card h3 { color: var(--color-ink); font-family: var(--font-display); margin: 0; font-size: 1.3rem; }
 .restaurant-card__topline, .restaurant-card__footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-3); }
+.restaurant-card__footer { justify-content: flex-end; }
 .restaurant-badge { border-radius: var(--radius-pill); padding: var(--space-1) var(--space-2); font-size: .7rem; font-weight: 750; }
 .restaurant-badge--verified { color: var(--color-success); background: var(--color-success-soft); }
 .restaurant-badge--warning { color: var(--color-warning); background: var(--color-warning-soft); }

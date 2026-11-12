@@ -1,5 +1,19 @@
+from typing import Literal
+
 from pydantic import Field
 from app.data.contracts import ApiModel, ReviewReliabilitySummary
+
+
+class ReviewReliabilitySignal(ApiModel):
+    key: Literal["text_similarity", "metadata_anomaly"]
+    method: Literal["textSimilarity", "metadataAnomaly"]
+    score: float = Field(ge=0, le=1)
+    detail: str
+    review_ids: list[str] = Field(default_factory=list)
+    review_id: str | None = None
+    similarity_percent: float | None = Field(default=None, ge=0, le=100)
+    rating: float | None = Field(default=None, ge=0, le=5)
+    flags: list[str] = Field(default_factory=list)
 
 class ReviewAnalyzeRequest(ApiModel):
     """
@@ -21,9 +35,10 @@ class ReviewAnalyzeRequest(ApiModel):
 
 class ReviewAnalyzeResponse(ReviewReliabilitySummary):
     """
-    [GIẢI THÍCH THIẾT KẾ SCHEMA RESPONSE]
-    1. Kế thừa Hợp đồng chung (Data Contract): Thay vì tự định nghĩa lại, class này kế thừa trực tiếp từ `ReviewReliabilitySummary` nằm trong file `contracts.py` của hệ thống[cite: 14].
-    2. Lợi ích: Đảm bảo API trả về chính xác 8 trường bắt buộc (status, riskLevel, confidence, reasons, methods, analyzedCount, evidenceStatus, analyzedAt) mà Frontend yêu cầu[cite: 14].
-    3. Tránh rủi ro tích hợp: Việc tái sử dụng này loại bỏ hoàn toàn khả năng bất đồng bộ cấu trúc JSON khi nhóm tiến hành ghép nối code với nhau ở giai đoạn cuối[cite: 13, 16].
+    Giữ hợp đồng tóm tắt dùng chung và bổ sung tín hiệu có cấu trúc để
+    frontend trực quan hóa kết quả mà không phải phân tích ngược chuỗi reasons.
     """
-    pass
+    signals: list[ReviewReliabilitySignal] = Field(default_factory=list)
+    signal_counts: dict[str, int] = Field(
+        default_factory=lambda: {"textSimilarity": 0, "metadataAnomaly": 0}
+    )

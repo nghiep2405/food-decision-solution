@@ -80,7 +80,11 @@ def detect_text_similarity(reviews: list[Any], threshold: float = 0.85) -> list[
             if score > threshold:
                 signals.append({
                     "key": "text_similarity",
+                    "method": "textSimilarity",
                     "score": round(score, 3),
+                    "review_ids": [valid_reviews[i].id, valid_reviews[j].id],
+                    "similarity_percent": round(score * 100, 1),
+                    "flags": ["duplicateContent"],
                     "detail": f"Nội dung đánh giá ID '{valid_reviews[i].id}' và ID '{valid_reviews[j].id}' giống nhau bất thường (mức độ {score*100:.1f}%)."
                 })
                 
@@ -144,18 +148,30 @@ def detect_metadata_anomalies(reviews: list[Any]) -> list[dict[str, Any]]:
             feat = features[i]
             
             reasons = []
+            flags = []
             if feat["conflict"] == 1:
                 reasons.append(f"có mâu thuẫn giữa nội dung và điểm số ({feat['rating']} sao)")
+                flags.append("textRatingConflict")
             if feat["time_diff"] < 5 and i > 0:
                 reasons.append("thời gian đăng quá sát với các đánh giá khác")
+                flags.append("postingBurst")
             if feat["rating"] in [1.0, 5.0]:
                 reasons.append(f"điểm số cực đoan ({feat['rating']} sao)")
+                flags.append("extremeRating")
+
+            if not flags:
+                flags.append("metadataOutlier")
                 
             reason_str = ", ".join(reasons) if reasons else "mang đặc trưng siêu dữ liệu khác biệt với số đông"
             
             signals.append({
                 "key": "metadata_anomaly",
+                "method": "metadataAnomaly",
                 "score": 1.0,
+                "review_id": r.id,
+                "review_ids": [r.id],
+                "rating": feat["rating"],
+                "flags": flags,
                 "detail": f"Đánh giá ID '{r.id}' {reason_str}."
             })
 

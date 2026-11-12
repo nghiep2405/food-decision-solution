@@ -11,7 +11,7 @@ Tuân thủ các quy tắc nghiệp vụ:
 ## 2. Cấu trúc file
 - `index.js`: Public API export `mountRecommendation(container, options)`, `buildSearchContext`, `validateRecommendationInput`.
 - `algorithm.js`: Hàm thuần kiểm tra hợp lệ dữ liệu đầu vào, xác định trạng thái `coldStart`, và chuẩn hóa đối tượng `SearchContext` (dùng `null` cho dữ liệu khuyết thay vì chuỗi rỗng hay `0`).
-- `mock-data.js`: Bộ dữ liệu mẫu cho các lựa chọn sở thích, loại món, bối cảnh thời gian, khu vực và 2 hồ sơ mẫu (`returningUser`, `coldStartUser`).
+- `options.js`: Các lựa chọn tĩnh của biểu mẫu; dữ liệu quán và kết quả luôn lấy từ backend.
 - `view.js`: Render giao diện form, xử lý sự kiện bằng `data-role` và `data-action`, quản lý trạng thái Cold-start và consent.
 - `style.css`: Giao diện theo `contract_ui_style.md`, sử dụng design tokens chung và tiền tố class `.recommendation-`.
 
@@ -22,7 +22,6 @@ Tuân thủ các quy tắc nghiệp vụ:
 import { mountRecommendation } from './features/recommendation/index.js';
 
 const feature = mountRecommendation(container, {
-  initialPreset: 'returning', // 'returning' | 'cold-start'
   onSubmit(searchContext) {
     // Nhận SearchContext hợp lệ để chuyển sang Discovery / Ranked Results
   },
@@ -77,9 +76,9 @@ Tại thư mục `frontend/`:
 ```bash
 npm run dev
 ```
-Mở `http://127.0.0.1:5173/wp6-demo.html` để kiểm tra tích hợp luồng **Recommendation Request $\rightarrow$ Ranked Results & Compare**:
-1. Chuyển đổi giữa hồ sơ **Người dùng có lịch sử** và **Người dùng mới (Cold-start)**; kiểm tra thông báo Cold-start.
+Mở `http://127.0.0.1:5173/#/recommendation` để kiểm tra tích hợp luồng **Recommendation Request $\rightarrow$ Ranked Results & Compare**:
+1. Chọn sở thích và kiểm tra thông báo Cold-start khi chưa dùng lịch sử.
 2. Tắt checkbox đồng ý dùng lịch sử ăn uống: danh sách món từng ăn được ẩn và `preferences.isColdStart` chuyển sang `true`.
-3. Thử bấm "Dùng GPS hiện tại" và giả lập từ chối quyền GPS: hiển thị cảnh báo `Permission denied` và cho phép chọn khu vực thủ công (`BR-01`).
+3. Thử bấm "Dùng GPS hiện tại"; nếu từ chối quyền, giao diện cho phép chọn khu vực thủ công (`BR-01`).
 4. Thử bỏ chọn toàn bộ sở thích/loại món hoặc nhập số người `< 1`: hiển thị lỗi inline gắn qua `aria-describedby`.
 5. Bấm "Nhận gợi ý quán phù hợp": kiểm tra trạng thái nút `loading` chống bấm đúp và dữ liệu `SearchContext` truyền sang bảng xếp hạng.

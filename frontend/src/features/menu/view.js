@@ -1,9 +1,8 @@
-import { demoMenu, demoRestaurant } from './mock-data.js';
 import { normalizeMenu, groupByCategory } from './algorithm.js';
 
 const priceText = (n) => Number.isFinite(n) ? `${n.toLocaleString('vi-VN')}đ` : 'Chưa có giá';
 const statusText = {
-  verified: 'Đã xác minh (trong dữ liệu mẫu)',
+  verified: 'Đã xác minh',
   unverified: 'Chưa xác minh',
   outdated: 'Có thể đã cũ',
   unknown: 'Chưa có dữ liệu',
@@ -11,8 +10,9 @@ const statusText = {
 const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
 export function createMenuView(options = {}) {
-  const restaurant = options.restaurant ?? demoRestaurant;
-  const items = normalizeMenu(options.menu ?? demoMenu);
+  const restaurant = options.restaurant;
+  if (!restaurant) throw new Error('Thiếu dữ liệu quán từ backend.');
+  const items = normalizeMenu(options.menu ?? []);
   const onSelectionChange = typeof options.onSelectionChange === 'function' ? options.onSelectionChange : () => {};
   const onOpenReviewReliability = typeof options.onOpenReviewReliability === 'function'
     ? options.onOpenReviewReliability
@@ -38,7 +38,7 @@ export function createMenuView(options = {}) {
           <div><p class="menu-eyebrow">FOOD DECISION SYSTEM · WP3</p>
             <h1>Chi tiết quán & thực đơn</h1>
             <p class="menu-subtitle">Thông tin phục vụ lựa chọn món và chuyển dữ liệu sang WP4.</p></div>
-          <span class="menu-demo-pill">DỮ LIỆU DEMO</span>
+          <span class="menu-demo-pill">DỮ LIỆU BACKEND</span>
         </header>
         <div class="menu-layout">
           <div class="menu-main">
@@ -53,21 +53,11 @@ export function createMenuView(options = {}) {
               </div>
               ${onOpenReviewReliability ? `<div class="menu-restaurant-actions"><button type="button" class="menu-button menu-button--outline" data-action="open-review-reliability">Xem độ tin cậy đánh giá</button></div>` : ''}
             </section>
-            <section class="menu-panel"><div class="menu-panel-heading"><div><div class="menu-kicker">NORMALIZED MENU</div><h2>Thực đơn</h2></div><span class="menu-small">${items.length} món minh họa</span></div>
-              <div class="menu-states" aria-label="Chế độ kiểm tra giao diện">
-                <label for="menu-state-picker">Trạng thái demo</label>
-                <select id="menu-state-picker" data-action="state">
-                  <option value="default" ${state==='default'?'selected':''}>Đầy đủ dữ liệu</option>
-                  <option value="loading" ${state==='loading'?'selected':''}>Đang tải</option>
-                  <option value="empty" ${state==='empty'?'selected':''}>Không có menu</option>
-                  <option value="partial" ${state==='partial'?'selected':''}>Dữ liệu một phần</option>
-                  <option value="error" ${state==='error'?'selected':''}>Lỗi tải dữ liệu</option>
-                </select>
-              </div>
+            <section class="menu-panel"><div class="menu-panel-heading"><div><div class="menu-kicker">NORMALIZED MENU</div><h2>Thực đơn</h2></div><span class="menu-small">${items.length} món</span></div>
               ${state === 'loading' ? '<div class="menu-message" role="status">Đang tải thực đơn…</div>' :
-                state === 'error' ? '<div class="menu-message menu-message--error" role="alert">Không tải được thực đơn. Hãy thử lại hoặc dùng thông tin có sẵn. <button class="menu-button menu-button--outline" data-action="retry">Thử lại</button></div>' :
+                state === 'error' ? `<div class="menu-message menu-message--error" role="alert">Không tải được thực đơn từ backend. ${escapeHtml(options.errorMessage ?? '')} <button class="menu-button menu-button--outline" data-action="retry">Thử lại</button></div>` :
                 state === 'empty' ? '<div class="menu-message">Chưa có thực đơn. Vui lòng chọn quán khác hoặc quay lại sau.</div>' :
-                Object.entries(groupByCategory(state === 'partial' ? items.filter(item=>item.verificationStatus !== 'verified') : items)).map(([category,list]) => `
+                Object.entries(groups).map(([category,list]) => `
                   <div class="menu-category"><h3>${escapeHtml(category)}</h3>
                   ${list.map(item => {
                     const selection = selections.get(item.id) ?? { itemId:item.id, variantId:item.variants[0]?.id, quantity:0 };
@@ -75,7 +65,7 @@ export function createMenuView(options = {}) {
                     const price = chosen?.price != null ? priceText(chosen.price) : chosen?.priceRange ? `Khoảng ${priceText(chosen.priceRange.min)} – ${priceText(chosen.priceRange.max)}` : 'Chưa có giá';
                     return `<article class="menu-item" data-item="${escapeHtml(item.id)}">
                       <div class="menu-item-info"><h4>${escapeHtml(item.name)}</h4><p>${escapeHtml(item.description)}</p>
-                      <p class="menu-source">Nguồn: ${escapeHtml(item.source ?? 'Chưa rõ')} · Cập nhật: ${escapeHtml(item.updatedAt ?? 'Chưa rõ')} · Confidence: ${item.confidence == null ? 'Chưa rõ' : `${Math.round(item.confidence*100)}%`}</p>
+                      <p class="menu-source">Độ tin cậy trích xuất: ${item.confidence == null ? 'Chưa rõ' : `${Math.round(item.confidence*100)}%`}</p>
                       <span class="menu-pill menu-pill--${item.verificationStatus === 'verified' ? 'success' : 'warning'}">${escapeHtml(statusText[item.verificationStatus] ?? statusText.unknown)}</span></div>
                       <div class="menu-item-controls"><label for="menu-variant-${escapeHtml(item.id)}">Kích cỡ</label>
                       <select id="menu-variant-${escapeHtml(item.id)}" data-action="variant" data-id="${escapeHtml(item.id)}" aria-label="Chọn kích cỡ cho ${escapeHtml(item.name)}">${item.variants.map(v=>`<option value="${escapeHtml(v.id)}" ${v.id===chosen?.id?'selected':''}>${escapeHtml(v.name)}</option>`).join('')}</select>
@@ -92,7 +82,7 @@ export function createMenuView(options = {}) {
               const item=items.find(i=>i.id===s.itemId); const variant=item?.variants.find(v=>v.id===s.variantId);
               return `<li>${escapeHtml(item?.name)} (${escapeHtml(variant?.name)}) × ${s.quantity}</li>`;
             }).join('')}</ul>` : '<p>Chưa chọn món. Nhấn + bên cạnh món để bắt đầu.</p>'}
-            <div class="menu-message">Đây là dữ liệu mô phỏng. Kết nối WP4 thông qua callback <code>onSelectionChange</code> khi tích hợp.</div>
+            <div class="menu-message">Giá thiếu hoặc chưa xác minh được giữ nguyên để bước kiểm tra ngân sách không kết luận sai.</div>
           </aside>
         </div>
       </section>`;
@@ -100,7 +90,7 @@ export function createMenuView(options = {}) {
   function handleClick(event) {
     const el = event.target.closest('[data-action]'); if (!el) return;
     const action = el.dataset.action;
-    if (action==='retry') {state='default'; render(); return;}
+    if (action==='retry') {options.onRetry?.(); return;}
     if (action==='open-review-reliability') {onOpenReviewReliability?.(restaurant); return;}
     if (!['plus','minus'].includes(action)) return;
     const item = items.find(i=>i.id===el.dataset.id); if (!item) return;
@@ -111,7 +101,6 @@ export function createMenuView(options = {}) {
     onSelectionChange(getSelections(),items); render();
   }
   function handleChange(event) {
-    if (event.target.dataset.action==='state') {state=event.target.value; render(); return;}
     if (event.target.dataset.action!=='variant') return;
     const id=event.target.dataset.id; const prev=selections.get(id)??{itemId:id,quantity:0};
     selections.set(id,{...prev,variantId:event.target.value}); onSelectionChange(getSelections(),items); render();

@@ -1,24 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { DEMO_CENTER, distanceKm, containsPoint, validateSearchArea } from '../src/core/geo.js';
+import { DEFAULT_CENTER, distanceKm, containsPoint, validateSearchArea } from '../src/core/geo.js';
 import { classifyRestaurants } from '../src/features/restaurant-discovery/algorithm.js';
-import { createMockCandidates } from '../src/features/restaurant-discovery/mock-data.js';
 import { requestUserLocation } from '../src/features/search-area/geolocation.js';
 
-const sampleData = JSON.parse(await readFile(new URL('../public/data/restaurants.json', import.meta.url), 'utf8'));
-const restaurants = createMockCandidates(sampleData, 'full');
+const restaurants = [
+  { id: 'r1', name: 'Quán 1', area: 'Quận 1', location: { lat: 10.7693, lng: 106.6992 }, rating: 4.8, pricePerPerson: 80000, menuVerified: true, dishes: ['Bún bò Huế'], openingStatus: 'open', travelMinutes: null },
+  { id: 'r2', name: 'Quán 2', area: 'Quận 1', location: { lat: 10.7758, lng: 106.6875 }, rating: 4.6, pricePerPerson: 90000, menuVerified: true, dishes: ['Cơm gà'], openingStatus: 'open', travelMinutes: null },
+  { id: 'r3', name: 'Quán 3', area: 'Quận 3', location: { lat: 10.7803, lng: 106.7047 }, rating: 4.4, pricePerPerson: 100000, menuVerified: true, dishes: ['Mì quảng'], openingStatus: 'closed', travelMinutes: null },
+  { id: 'r4', name: 'Quán 4', area: 'Bình Thạnh', location: { lat: 10.8025, lng: 106.7146 }, rating: 4.2, pricePerPerson: 70000, menuVerified: false, dishes: ['Bún bò'], openingStatus: 'unknown', travelMinutes: null },
+  { id: 'r5', name: 'Quán 5', area: 'Quận 3', location: { lat: 10.7867, lng: 106.6874 }, rating: 4.5, pricePerPerson: 120000, menuVerified: true, dishes: ['Cơm tấm'], openingStatus: 'open', travelMinutes: null },
+  { id: 'r6', name: 'Quán 6', area: 'Quận 1', location: { lat: 10.771, lng: 106.7 }, rating: 4.1, pricePerPerson: null, menuVerified: false, dishes: ['Bánh mì'], openingStatus: 'unknown', travelMinutes: null },
+];
 const context = {
-  query: '', area: 'all', searchCenter: DEMO_CENTER, routeOrigin: null,
+  query: '', area: 'all', searchCenter: DEFAULT_CENTER, routeOrigin: null,
   searchArea: { mode: 'circle', radiusKm: 5 }, budgetPerPerson: 150000,
   minRating: 0, openNow: false, sortBy: 'recommended',
 };
 
 test('geographic distance uses coordinates and preserves missing data', () => {
   assert.ok(Math.abs(distanceKm({ lat: 0, lng: 0 }, { lat: 0, lng: 1 }) - 111.195) < 0.001);
-  assert.equal(distanceKm(DEMO_CENTER, null), null);
-  assert.equal(distanceKm(DEMO_CENTER, { lat: NaN, lng: 0 }), null);
-  assert.equal(distanceKm(DEMO_CENTER, { lat: 91, lng: 0 }), null);
+  assert.equal(distanceKm(DEFAULT_CENTER, null), null);
+  assert.equal(distanceKm(DEFAULT_CENTER, { lat: NaN, lng: 0 }), null);
+  assert.equal(distanceKm(DEFAULT_CENTER, { lat: 91, lng: 0 }), null);
 });
 
 test('bbox includes edges and rejects out-of-area points', () => {
@@ -44,7 +48,7 @@ test('default search distinguishes known budget matches from unknown prices', ()
 
 test('unaccented dish matching and radius filter are applied together', () => {
   const results = classifyRestaurants(restaurants, { ...context, query: 'BUN BO', searchArea: { mode: 'circle', radiusKm: 1 } });
-  assert.deepEqual(results.items.map((item) => item.id), ['quan-goc-hue']);
+  assert.deepEqual(results.items.map((item) => item.id), ['r1']);
 });
 
 test('search center and real user origin remain independent', () => {
@@ -57,7 +61,7 @@ test('search center and real user origin remain independent', () => {
 
 test('bbox search uses visible bounds instead of the circle radius', () => {
   const results = classifyRestaurants(restaurants, { ...context, searchArea: { mode: 'bbox', radiusKm: 0.2, bounds: { south: 10.768, west: 106.697, north: 10.771, east: 106.701 } } });
-  assert.deepEqual(results.items.map((item) => item.id), ['quan-goc-hue']);
+  assert.deepEqual(results.items.map((item) => item.id), ['r1']);
 });
 
 test('unknown hard-filter values stay pending, closed restaurants fail', () => {
@@ -72,20 +76,16 @@ test('unknown hard-filter values stay pending, closed restaurants fail', () => {
 });
 
 test('partial data keeps missing coordinates and ratings as null without mutating fixtures', () => {
-  const partial = createMockCandidates(sampleData, 'partial');
+  const partial = restaurants.map((item, index) => index === 0
+    ? { ...item, location: null, rating: null, pricePerPerson: null }
+    : { ...item });
   const before = structuredClone(partial);
   const results = classifyRestaurants(partial, context);
-  const unknown = results.pending.find((item) => item.id === 'quan-goc-hue');
+  const unknown = results.pending.find((item) => item.id === 'r1');
   assert.equal(unknown.location, null);
   assert.equal(unknown.distanceKm, null);
   assert.equal(unknown.rating, null);
   assert.deepEqual(partial, before);
-});
-
-test('mock route failure never reuses fictional travel times as a real route', () => {
-  const results = createMockCandidates(sampleData, 'route-error');
-  assert.ok(results.every((item) => item.travelMinutes === null && item.routeStatus === 'error'));
-  assert.deepEqual(createMockCandidates(sampleData, 'empty'), []);
 });
 
 test('GPS success preserves precision, accuracy and measurement time', async () => {

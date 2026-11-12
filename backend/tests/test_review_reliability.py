@@ -1,18 +1,12 @@
 import os
 import pytest
 from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
+from unittest.mock import patch
+from pydantic import ValidationError
 
 from app.data.contracts import ReviewRecord, DataStatus
-from app.features.review_reliability.router import router
 from app.features.review_reliability.schemas import ReviewAnalyzeRequest
-
-# --- SETUP FASTAPI CLIENT CHO ROUTER ---
-app = FastAPI()
-app.include_router(router, prefix="/api/reviews")
-client = TestClient(app)
+from app.features.review_reliability.service import ReviewReliabilityService
 
 # --- MOCK DATA ---
 def create_mock_review(review_id: str, text: str, rating: float, time_offset_minutes: int) -> ReviewRecord:
@@ -48,13 +42,10 @@ def test_insufficient_evidence(mock_save_run, mock_get_reviews):
     # Trả về duy nhất 1 review
     mock_get_reviews.return_value = [create_mock_review("1", "Quán rất ngon", 5.0, 0)]
     
-    response = client.post(
-        "/api/reviews/analyze",
-        json={"restaurantId": "test-restaurant", "method": "combined"}
+    response = ReviewReliabilityService().analyze(
+        ReviewAnalyzeRequest(restaurant_id="test-restaurant", method="combined")
     )
-    
-    assert response.status_code == 200
-    data = response.json()
+    data = response.model_dump(mode="json", by_alias=True)
     assert data["status"] == "insufficient_evidence" #[cite: 18, 27]
     assert data["riskLevel"] is None #[cite: 18, 27]
     assert data["evidenceStatus"] == "insufficient_evidence" #[cite: 18, 27]
@@ -72,16 +63,17 @@ def test_text_similarity_detected(mock_save_run, mock_get_reviews):
         create_mock_review("3", "Bình thường", 3.0, 10),
     ]
     
-    response = client.post(
-        "/api/reviews/analyze",
-        json={"restaurantId": "test-restaurant", "method": "textSimilarity"}
+    response = ReviewReliabilityService().analyze(
+        ReviewAnalyzeRequest(restaurant_id="test-restaurant", method="textSimilarity")
     )
-    
-    assert response.status_code == 200
-    data = response.json()
+    data = response.model_dump(mode="json", by_alias=True)
     assert data["status"] == "potentially_suspicious" #[cite: 18, 27]
     assert data["methods"] == ["textSimilarity"] #[cite: 18, 27]
     assert len(data["reasons"]) > 0
+    assert data["signalCounts"] == {"textSimilarity": 1, "metadataAnomaly": 0}
+    assert data["signals"][0]["method"] == "textSimilarity"
+    assert data["signals"][0]["reviewIds"] == ["1", "2"]
+    assert data["signals"][0]["similarityPercent"] == 100.0
 
 @patch("app.features.review_reliability.provider.ReviewDataProvider.get_reviews")
 @patch("app.features.review_reliability.provider.ReviewDataProvider.save_run")
@@ -94,21 +86,17 @@ def test_metadata_anomaly_detected(mock_save_run, mock_get_reviews):
         create_mock_review("4", "Sẽ quay lại ủng hộ quán", 5.0, 15),
     ]
     
-    response = client.post(
-        "/api/reviews/analyze",
-        json={"restaurantId": "test-restaurant", "method": "metadataAnomaly"}
+    response = ReviewReliabilityService().analyze(
+        ReviewAnalyzeRequest(restaurant_id="test-restaurant", method="metadataAnomaly")
     )
-    
-    assert response.status_code == 200
-    data = response.json()
+    data = response.model_dump(mode="json", by_alias=True)
     assert data["status"] == "potentially_suspicious" #[cite: 18, 27]
+    assert data["signalCounts"]["metadataAnomaly"] >= 1
+    assert data["signals"][0]["method"] == "metadataAnomaly"
+    assert data["signals"][0]["reviewId"]
+    assert isinstance(data["signals"][0]["flags"], list)
     
 def test_invalid_method_validation():
     """Kịch bản: FastAPI Schema (Pydantic) tự động chặn method không hợp lệ"""
-    response = client.post(
-        "/api/reviews/analyze",
-        json={"restaurantId": "test-restaurant", "method": "hackMethod"}
-    )
-    
-    # Kì vọng lỗi 422 Unprocessable Entity do vướng regex trong ReviewAnalyzeRequest
-    assert response.status_code == 422
+    with pytest.raises(ValidationError):
+        ReviewAnalyzeRequest(restaurant_id="test-restaurant", method="hackMethod")

@@ -8,18 +8,12 @@ Feature thực hiện UC-05: hiển thị các tín hiệu có thể diễn gi�
 const feature = mountReviewReliability(container, {
   restaurant,
   summaryData,
-  reviewsData,
-  initialScenario: 'normal',
-  onOpenFeedback(feedbackTarget) {},
 });
 ```
 
 - `restaurant`: quán đang được xem; dùng để hiển thị context và tạo feedback target.
 - `summaryData`: `ReviewReliabilitySummary` đã có từ Results/backend. Khi được truyền vào, feature hiển thị trực tiếp mà không tự phân tích lại.
-- `reviewsData`: review thô được phép sử dụng; mock adapter sẽ tạo summary.
-- `initialScenario`: `normal`, `suspicious_burst` hoặc `insufficient` khi chạy demo.
-
-Instance trả về `unmount()`, `setReviewsData()`, `setSummaryData()`, `setViewState()` và `getSummary()`.
+Instance trả về `unmount()`, `setSummaryData()`, `setViewState()` và `getSummary()`.
 
 ## ReviewReliabilitySummary
 
@@ -31,11 +25,17 @@ Instance trả về `unmount()`, `setReviewsData()`, `setSummaryData()`, `setVie
   reasons,
   analyzedCount,
   evidenceStatus,
-  updatedAt,
+  analyzedAt,
+  signalCounts: { textSimilarity, metadataAnomaly },
+  signals: [
+    { method, score, detail, reviewIds, reviewId, similarityPercent, rating, flags }
+  ],
 }
 ```
 
 Nếu bằng chứng không đủ, `riskLevel` và `confidence` phải là `null`; tín hiệu này không được dùng để trừ điểm quán.
+
+UI dùng `signals` để hiển thị biểu đồ phân bố hai phương pháp, cặp review gần trùng, thang rating của metadata anomaly và danh sách bằng chứng có thể kiểm tra. `reasons` vẫn được giữ làm phần tóm tắt giải thích.
 
 ## URL kiểm tra
 

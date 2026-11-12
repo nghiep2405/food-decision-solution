@@ -29,7 +29,7 @@ export function calculateBudget({ menu, selections, dinerCount, budget, budgetMo
     }
     if (dish.verificationStatus === 'outdated') {
       if (completeness === 'complete') completeness = 'uncertain';
-      warnings.push(`${dish.name}: giá có thể đã cũ (cập nhật ${dish.updatedAt ?? 'không rõ'}).`);
+      warnings.push(`${dish.name}: giá có thể đã cũ.`);
     } else if (dish.verificationStatus !== 'verified') {
       if (completeness === 'complete') completeness = 'uncertain';
       warnings.push(`${dish.name}: giá chưa được xác minh.`);

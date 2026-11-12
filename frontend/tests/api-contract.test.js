@@ -38,3 +38,35 @@ test('recommendation UI context maps to the backend SearchContext contract', () 
   assert.equal(request.candidateSource, 'local');
   assert.equal(request.userLocation.source, 'map');
 });
+
+test('direct search context preserves map bounds, GPS consent and per-person budget', () => {
+  const request = toRecommendationRequest({
+    mode: 'direct',
+    query: 'bún bò',
+    searchCenter: { lat: 10.77, lng: 106.7 },
+    location: {
+      lat: 10.771,
+      lng: 106.701,
+      source: 'gps',
+      accuracyMeters: 20,
+      measuredAt: null,
+    },
+    routeOrigin: { lat: 10.771, lng: 106.701 },
+    searchArea: {
+      mode: 'bbox',
+      radiusKm: 3,
+      bounds: { south: 10.7, west: 106.6, north: 10.8, east: 106.8 },
+    },
+    budgetPerPerson: 120000,
+    minRating: 4,
+    openNow: true,
+    sortBy: 'distance',
+  });
+
+  assert.equal(request.mode, 'direct');
+  assert.equal(request.searchArea.mode, 'bbox');
+  assert.equal(request.budget.perPersonBudget, 120000);
+  assert.equal(request.userLocation.source, 'gps');
+  assert.equal(request.consent.locationGps, true);
+  assert.equal(request.filters.sortBy, 'distance');
+});

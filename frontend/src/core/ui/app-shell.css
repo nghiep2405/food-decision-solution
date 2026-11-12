@@ -32,20 +32,16 @@
 .ui-selection-bar { position: fixed; right: var(--space-4); bottom: var(--space-4); left: var(--space-4); z-index: 20; display: flex; justify-content: space-between; align-items: center; max-width: 46rem; gap: var(--space-4); margin: auto; border: 1px solid color-mix(in srgb, white 14%, transparent); border-radius: var(--radius-card); padding: 0.8rem 0.9rem 0.8rem 1.1rem; background: var(--color-ink); box-shadow: 0 1.1rem 3rem rgba(12, 31, 23, 0.28); color: white; }
 .ui-selection-bar__copy { display: grid; }
 .ui-selection-bar__copy small { color: color-mix(in srgb, white 65%, transparent); }
-.ui-loading-overlay, .ui-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-ink) 48%, transparent); backdrop-filter: blur(5px); }
+.ui-loading-overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-ink) 48%, transparent); backdrop-filter: blur(5px); }
 .ui-loading-card { display: flex; align-items: center; gap: var(--space-4); border-radius: var(--radius-card); padding: var(--space-5); background: var(--color-canvas); box-shadow: var(--shadow-raised); color: var(--color-ink); }
 .ui-spinner { width: 1.5rem; height: 1.5rem; border: 3px solid var(--color-line); border-top-color: var(--color-accent-strong); border-radius: 50%; animation: ui-spin 800ms linear infinite; }
 @keyframes ui-spin { to { transform: rotate(360deg); } }
-.ui-modal { position: relative; width: min(31rem, 100%); border-radius: var(--radius-panel); padding: var(--space-6); background: var(--color-canvas); box-shadow: var(--shadow-raised); }
-.ui-modal__close { position: absolute; top: var(--space-3); right: var(--space-3); display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: var(--radius-pill); background: var(--color-surface); color: var(--color-ink); cursor: pointer; font-size: 1.4rem; }
-.ui-modal__icon { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; margin-bottom: var(--space-4); border-radius: var(--radius-pill); background: var(--color-info-soft); color: var(--color-info); font-weight: 850; }
-.ui-modal h2 { margin: var(--space-2) 0 var(--space-3); color: var(--color-ink); font-family: var(--font-display); font-size: 1.6rem; }
-.ui-modal p:not(.ui-kicker) { margin: 0 0 var(--space-5); color: var(--color-muted); line-height: 1.65; }
 @media (max-width: 700px) { .ui-page-hero { grid-template-columns: 1fr; padding-block: 2.4rem; } }
 @media (max-width: 560px) {
-  .ui-brand__copy small, .ui-button--compact { display: none; }
+  .ui-brand__copy small { display: none; }
   .ui-site-header__inner { min-height: 4.25rem; }
   .ui-button--text { padding-inline: var(--space-2); }
+  .ui-admin-link { padding-inline: 0.65rem; }
   .ui-selection-bar { align-items: stretch; flex-direction: column; }
   .ui-selection-bar__actions, .ui-selection-bar__actions .ui-button { flex: 1; }
 }

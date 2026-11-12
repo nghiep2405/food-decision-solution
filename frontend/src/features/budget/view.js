@@ -1,18 +1,18 @@
 import { calculateBudget } from './algorithm.js';
-import { demoRestaurant, demoMenu } from './mock-data.js';
 
 const vnd = (number) => `${Math.round(number).toLocaleString('vi-VN')}đ`;
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-const statusLabel = { verified: 'Đã xác minh (mẫu)', unverified: 'Chưa xác minh', outdated: 'Có thể đã cũ', unknown: 'Chưa có dữ liệu' };
+const statusLabel = { verified: 'Đã xác minh', unverified: 'Chưa xác minh', outdated: 'Có thể đã cũ', unknown: 'Chưa có dữ liệu' };
 
 export function createBudgetView({
-  menu = demoMenu,
-  restaurant = demoRestaurant,
+  menu = [],
+  restaurant,
   initialSelections = [],
   initialDinerCount = 2,
   initialBudget = 200000,
   initialBudgetMode = 'total',
 } = {}) {
+  if (!restaurant) throw new Error('Thiếu dữ liệu quán từ backend.');
   const selections = new Map(
     (Array.isArray(initialSelections) ? initialSelections : [])
       .filter((selection) => Number(selection.quantity) > 0)
@@ -32,7 +32,6 @@ export function createBudgetView({
       return `<article class="budget-menu-item">
         <div class="budget-menu-item__info"><strong>${escapeHtml(dish.name)}</strong><small>${escapeHtml(dish.description)}</small>
           <span class="budget-badge budget-badge--${escapeHtml(dish.verificationStatus)}">${statusLabel[dish.verificationStatus] ?? 'Chưa xác minh'}</span>
-          <small>Nguồn: ${escapeHtml(dish.source ?? 'Chưa rõ')} · ${escapeHtml(dish.updatedAt ?? 'Chưa rõ ngày')}</small>
         </div>
         <div class="budget-menu-item__actions"><label>Kích cỡ
           <select data-role="variant" data-item-id="${escapeHtml(dish.id)}" aria-label="Kích cỡ ${escapeHtml(dish.name)}">
@@ -113,7 +112,7 @@ export function createBudgetView({
       container = element;
       container.innerHTML = `<section class="budget-page" aria-label="Lập kế hoạch bữa ăn">
         <header class="budget-page__hero"><p class="budget-page__eyebrow">WP4 · FOOD DECISION SYSTEM</p><h1>Lập kế hoạch bữa ăn</h1><p>Chọn món, điều chỉnh số lượng và kiểm tra ngân sách dự kiến.</p>
-          <p class="budget-demo-label">Dữ liệu demo · ${escapeHtml(restaurant.name)}</p></header>
+          <p class="budget-demo-label">Dữ liệu backend · ${escapeHtml(restaurant.name)}</p></header>
         <div class="budget-layout"><section class="budget-panel"><div class="budget-panel__heading"><h2>Thực đơn</h2><button type="button" class="budget-reset" data-action="reset">Đặt lại món</button></div><div data-role="menu"></div></section>
           <aside class="budget-panel budget-panel--summary"><h2>Thiết lập ngân sách</h2><div class="budget-fields"><label>Số người ăn<input data-role="diners" type="number" min="1" max="100" value="${dinerCount}" /></label><label>Ngân sách (VNĐ)<input data-role="budget-value" type="number" min="0" step="1000" value="${budget}" /></label></div>
             <fieldset class="budget-mode"><legend>Loại ngân sách</legend><label><input type="radio" name="budgetMode" value="total" ${budgetMode === 'total' ? 'checked' : ''} /> Tổng ngân sách</label><label><input type="radio" name="budgetMode" value="perPerson" ${budgetMode === 'perPerson' ? 'checked' : ''} /> Mỗi người</label></fieldset><p class="budget-form-error" data-role="form-error" role="alert"></p>

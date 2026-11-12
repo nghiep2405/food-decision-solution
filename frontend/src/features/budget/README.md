@@ -4,13 +4,12 @@
 Giao diện chọn món, variant/size, số lượng, số người và ngân sách tổng / mỗi người. Tự động tính subtotal, tổng tạm tính, chi phí mỗi người, tiền còn dư/vượt khi dữ liệu giá đủ rõ. Cảnh báo giá thiếu, giá khoảng, giá cũ/chưa xác minh, phí phát sinh chưa rõ.
 
 ## Phạm vi
-Frontend demo bằng mock data; chưa có backend hoặc tính năng thanh toán. Không tự nhận là tính năng OCR. Nguồn thực đơn sẽ thay bằng menu chuẩn hóa của WP3.
+Frontend nhận menu chuẩn hóa từ backend; chưa có tính năng thanh toán.
 
 ## Cấu trúc
 - `index.js`: public `mountBudget(container, options)` và `calculateBudget`.
 - `view.js`: DOM rendering và event handlers.
 - `algorithm.js`: hàm thuần `calculateBudget`.
-- `mock-data.js`: menu demo (không phải giá thực tế).
 - `style.css`: CSS dùng token thiết kế của nhóm, class prefix `budget-`.
 
 ## Input/output
