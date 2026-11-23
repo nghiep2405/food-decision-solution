@@ -121,7 +121,18 @@ Sau khi server chạy:
 - Swagger UI: <http://127.0.0.1:8000/docs>
 - OpenAPI JSON: <http://127.0.0.1:8000/openapi.json>
 
-## Gọi demo endpoint
+## Endpoint recommendation chính
+
+Cả hai luồng Direct Search và Personalized Recommendation của frontend dùng
+`POST /api/v1/recommendations/detailed` với contract `SearchContext`. Đây là
+pipeline duy nhất nhận business rule mới: candidate provider, kiểm tra vùng,
+hard filters, ranking, missing-data handling và fallback.
+
+## Endpoint discovery legacy
+
+`GET /api/v1/restaurants/search` chỉ được giữ để tương thích với demo đầu tiên.
+Endpoint này được đánh dấu `deprecated` trong Swagger/OpenAPI, đọc fixture riêng
+và không được dùng cho Google Places, route, feedback hoặc refinement.
 
 Tìm `bún bò` trong bán kính 5 km, ngân sách 120.000 đồng/người:
 
@@ -141,6 +152,9 @@ Các query parameters:
 | `sort_by` | `recommended` | `recommended`, `distance` hoặc `rating` |
 
 Quán thiếu giá vẫn có thể xuất hiện và phải mang warning; backend không khẳng định quán đó phù hợp ngân sách.
+
+Không thêm business rule mới vào endpoint legacy. Khi cần kiểm tra luồng sản
+phẩm, dùng frontend hoặc `POST /api/v1/recommendations/detailed` trong Swagger.
 
 ## Chạy test
 

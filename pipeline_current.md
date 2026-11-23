@@ -30,11 +30,11 @@ The two entry modes share the same result, restaurant-detail, menu, budget and r
 ### Direct search
 
 1. The user enters a dish, budget and filters, then chooses a radius or visible map area.
-2. The UI calculates distances from the selected map center and keeps the list and map synchronized.
-3. Candidates outside the confirmed area are removed. Candidates with missing data remain visible as pending/unverified when appropriate.
+2. The UI maps the request to the shared `SearchContext` and calls `POST /api/v1/recommendations/detailed`, the same backend pipeline used by Recommendation.
+3. The backend calculates distances, applies hard filters and ranks candidates. Candidates with missing data remain visible as pending/unverified when appropriate.
 4. Selecting a restaurant opens its detail and menu flow.
 
-The current direct-search candidate set is the local frontend dataset. It is stable for UI demonstration but has not yet been replaced by the SQLite/external provider contract.
+`GET /api/v1/restaurants/search` belongs to the first demo, is marked deprecated in OpenAPI and is not used by the current frontend. New discovery, provider and filtering rules must be implemented only in the shared recommendation pipeline.
 
 ### Recommendation
 
@@ -69,7 +69,7 @@ OCR upload is available in the backend contract but does not yet have an upload 
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/v1/restaurants/search` | Existing restaurant discovery endpoint. |
+| `GET /api/v1/restaurants/search` | Deprecated compatibility endpoint for the first demo; do not add new business rules. |
 | `POST /api/v1/recommendations` | Return the canonical ranked result. |
 | `POST /api/v1/recommendations/detailed` | Return ranking plus execution/fallback metadata. |
 | `GET /api/v1/recommendations/comparison` | Compare local-first and external-first strategies. |
@@ -84,7 +84,7 @@ The frontend uses `VITE_API_BASE_URL` when provided and otherwise connects to `h
 | Use case | Current status |
 |---|---|
 | UC-01 Define request and search area | Implemented in both entry modes. |
-| UC-02 Discover candidates | Direct UI flow implemented; SQLite/external provider is used by recommendation. |
+| UC-02 Discover candidates | Direct Search and Recommendation both use the shared SQLite/external candidate and ranking pipeline. |
 | UC-03 Acquire and normalize menu | Backend OCR and stored-menu retrieval implemented; upload UI remains pending. |
 | UC-04 Calculate cost and budget fit | Implemented after menu selection. |
 | UC-05 Assess review reliability | Implemented with two methods, combined mode and safe fallback. |

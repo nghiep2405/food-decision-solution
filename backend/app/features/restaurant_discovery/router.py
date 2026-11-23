@@ -17,7 +17,17 @@ def get_restaurant_discovery_service() -> RestaurantDiscoveryService:
     return RestaurantDiscoveryService()
 
 
-@router.get("/search", response_model=RestaurantSearchResponse)
+@router.get(
+    "/search",
+    response_model=RestaurantSearchResponse,
+    deprecated=True,
+    summary="Legacy restaurant search (use POST /recommendations/detailed)",
+    description=(
+        "Compatibility endpoint for the first UI demo. It uses the frozen demo "
+        "contract and must not be used by new product flows. Direct search and "
+        "personalized recommendation both use POST /api/v1/recommendations/detailed."
+    ),
+)
 async def search_restaurants(
     query: Annotated[str, Query(max_length=100)] = "",
     area: Annotated[str, Query(max_length=100)] = "all",
@@ -26,6 +36,8 @@ async def search_restaurants(
     sort_by: SortBy = SortBy.RECOMMENDED,
     service: RestaurantDiscoveryService = Depends(get_restaurant_discovery_service),
 ) -> RestaurantSearchResponse:
+    """Serve the frozen pre-MVP demo contract for backward compatibility only."""
+
     criteria = SearchCriteria(
         query=query,
         area=area,

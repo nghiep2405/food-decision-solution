@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+
 import pytest
 
 from app.data.contracts import (
@@ -32,8 +31,10 @@ from app.features.recommendation import (
     FakeRecommendationAgent,
     PROMPT_VERSION,
     RecommendationService,
-    get_recommendation_service,
-    router as recommendation_router,
+)
+from app.features.recommendation.router import (
+    create_recommendations,
+    get_strategy_comparison,
 )
 
 
@@ -47,6 +48,25 @@ def seeded_connection(tmp_path):
         yield connection
     finally:
         connection.close()
+
+
+def _fake_external_provider() -> ExternalPlacesCandidateProvider:
+    """Return an in-memory provider so tests never call Overpass or Google."""
+
+    place = {
+        "id": "ext-test-bun-bo",
+        "name": "Bún Bò External Test",
+        "address": "Quận 1, TP. Hồ Chí Minh",
+        "lat": 10.7721,
+        "lng": 106.6958,
+        "cuisine": "vietnamese;noodle;bun_bo;spicy",
+        "opening_hours": "07:00-21:00",
+        "source_url": "https://example.test/places/ext-test-bun-bo",
+    }
+    return ExternalPlacesCandidateProvider(
+        fetcher=lambda _context: [dict(place)],
+        timeout_seconds=0.2,
+    )
 
 
 def _make_base_context(**overrides) -> SearchContext:
@@ -85,6 +105,7 @@ def test_local_and_external_strategies_run_on_same_contract(seeded_connection):
     fake_agent = FakeRecommendationAgent()
     service = RecommendationService(
         connection=seeded_connection,
+        external_provider=_fake_external_provider(),
         agent=fake_agent,
     )
 
@@ -335,7 +356,7 @@ def test_external_provider_error_falls_back_to_local_with_warning(seeded_connect
     assert any("external" in w.lower() for w in envelope.metadata.warnings)
 
 
-def test_strategy_comparison_and_fastapi_router(tmp_path):
+def test_strategy_comparison_and_router_handlers(tmp_path):
     db_path = tmp_path / "router_test.db"
     initialize_database(db_path)
     with connect_database(db_path) as conn:
@@ -343,13 +364,9 @@ def test_strategy_comparison_and_fastapi_router(tmp_path):
 
     service = RecommendationService(
         database_path=str(db_path),
+        external_provider=_fake_external_provider(),
         agent=FakeRecommendationAgent(),
     )
-
-    app = FastAPI()
-    app.include_router(recommendation_router, prefix="/api/v1")
-    app.dependency_overrides[get_recommendation_service] = lambda: service
-    client = TestClient(app)
 
     post_payload = {
         "mode": "direct",
@@ -368,16 +385,13 @@ def test_strategy_comparison_and_fastapi_router(tmp_path):
         "candidateSource": "local",
     }
 
-    response = client.post("/api/v1/recommendations", json=post_payload)
-    assert response.status_code == 200
-    body = response.json()
-    assert "decisionRunId" in body
-    assert len(body["items"]) >= 1
-    assert body["items"][0]["restaurant"]["id"] == "quan-goc-hue"
+    context = SearchContext.model_validate(post_payload)
+    result = create_recommendations(context, service)
+    assert result.decision_run_id
+    assert len(result.items) >= 1
+    assert result.items[0].restaurant.id == "quan-goc-hue"
 
-    comp_response = client.get("/api/v1/recommendations/comparison")
-    assert comp_response.status_code == 200
-    comp_body = comp_response.json()
-    assert comp_body["recommendedDefault"] == "local"
-    assert len(comp_body["localRuns"]) == 5
-    assert len(comp_body["externalRuns"]) == 5
+    comparison = get_strategy_comparison(service)
+    assert comparison.recommended_default == "local"
+    assert len(comparison.local_runs) == 5
+    assert len(comparison.external_runs) == 5

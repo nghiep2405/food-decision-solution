@@ -2,11 +2,19 @@
 
 Feature demo tìm quán theo món, khu vực, bán kính và ngân sách mỗi người.
 
+> **Legacy:** feature này được giữ để tương thích với UI demo ban đầu và không
+> nhận thêm business rule mới. Luồng sản phẩm hiện tại của cả Direct Search và
+> Recommendation phải dùng `POST /api/v1/recommendations/detailed`, nơi dùng
+> chung `SearchContext`, SQLite/provider, hard filters và ranking pipeline.
+
 ## Endpoint
 
 ```text
 GET /api/v1/restaurants/search
 ```
+
+Endpoint được đánh dấu `deprecated` trong OpenAPI/Swagger. Không dùng endpoint
+này để phát triển Google Places, route, feedback hoặc refinement.
 
 ## Luồng xử lý
 
