@@ -3,91 +3,431 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WP5 Review Reliability Demo | Food Decision</title>
+    <title>WP5 / FINAL-04 Review Reliability Demo | Food Decision</title>
     <style>
       .debug-panel {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 12px;
+        right: 12px;
+        max-width: calc(100vw - 24px);
         background: #fff;
-        padding: 16px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 10px 12px;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
         z-index: 9999;
-        font-family: sans-serif;
-        border: 1px solid #ccc;
+        font-family: system-ui, -apple-system, sans-serif;
+        border: 1px solid #d6d0c4;
       }
-      .debug-panel h3 { margin: 0 0 10px; font-size: 14px; }
-      .debug-panel button { margin: 4px; padding: 6px 10px; cursor: pointer; }
+      .debug-panel summary {
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        user-select: none;
+      }
+      .debug-panel__group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .debug-panel button {
+        padding: 6px 10px;
+        font-size: 12px;
+        border: 1px solid #cbc5b6;
+        border-radius: 6px;
+        background: #fffdf7;
+        cursor: pointer;
+      }
+      .debug-panel button.is-active {
+        background: #18392b;
+        color: #fffdf7;
+        border-color: #18392b;
+      }
+      .debug-panel hr {
+        margin: 8px 0 0;
+        border: none;
+        border-top: 1px solid #ece7db;
+      }
     </style>
   </head>
   <body>
     <div id="wp5-demo-root"></div>
-    
-    <!-- Thanh Debug dành riêng cho lập trình viên -->
-    <div class="debug-panel">
-      <h3>🛠 Debug Controls</h3>
-      <button id="btn-normal">Mock: Bình thường</button>
-      <button id="btn-suspicious">Mock: Đáng ngờ</button>
-      <button id="btn-insufficient">Mock: Thiếu DL</button>
-      <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee;">
-      <button id="btn-loading">State: Loading</button>
-      <button id="btn-error">State: Error</button>
-    </div>
+
+    <!-- Thanh Debug thu gọn được để không chắn viewport 320px -->
+    <details class="debug-panel" open>
+      <summary>Debug Controls (FINAL-04)</summary>
+      <div class="debug-panel__group">
+        <button type="button" data-scenario="normal" class="is-active">Bình thường</button>
+        <button type="button" data-scenario="suspicious">Đáng ngờ (Spam/Burst)</button>
+        <button type="button" data-scenario="conflict">Mâu thuẫn &amp; Null rating</button>
+        <button type="button" data-scenario="insufficient">Thiếu bằng chứng</button>
+        <button type="button" data-scenario="empty">Rỗng (0 review)</button>
+      </div>
+      <hr />
+      <div class="debug-panel__group">
+        <button type="button" data-state="loading">State: Loading</button>
+        <button type="button" data-state="error">State: Error</button>
+      </div>
+    </details>
 
     <script type="module">
       import './src/styles/global.css';
       import { createAppShell } from './src/core/ui/app-shell.js';
       import { mountReviewReliability } from './src/features/review-reliability/index.js';
-      import { MOCK_REVIEWS_SCENARIOS } from './src/features/review-reliability/mock-data.js';
-      import { analyzeReviewReliabilityMock } from './src/features/review-reliability/algorithm.js';
+
+      // Dữ liệu demo tách biệt hoàn toàn khỏi src/app.js (tuân thủ FINAL-07)
+      const DEMO_SCENARIOS = {
+        normal: {
+          restaurant: { id: 'quan-goc-hue', name: 'Quán Gốc Huế (Mẫu Bình thường)' },
+          overview: {
+            restaurantId: 'quan-goc-hue',
+            positive: [
+              {
+                reviewId: 'rev-hue-01',
+                rating: 5,
+                textExcerpt: 'Nước dùng bún bò đậm đà, thịt nạm mềm, rau sống tươi và quán sạch sẽ.',
+                createdAt: '2026-11-18T11:30:00Z',
+                sentiment: 'positive',
+              },
+              {
+                reviewId: 'rev-hue-02',
+                rating: 4,
+                textExcerpt: 'Giá hợp lý khu trung tâm, phục vụ lên món nhanh vào giờ trưa.',
+                createdAt: '2026-11-19T12:15:00Z',
+                sentiment: 'positive',
+              },
+            ],
+            negative: [
+              {
+                reviewId: 'rev-hue-03',
+                rating: 2,
+                textExcerpt: 'Giờ cao điểm hơi đông nên chỗ gửi xe chật và phải đợi khoảng 15 phút.',
+                createdAt: '2026-11-20T18:45:00Z',
+                sentiment: 'negative',
+              },
+            ],
+            suspicious: [],
+            neutralCount: 1,
+            counts: { positive: 2, negative: 1, neutral: 1, suspicious: 0, total: 4 },
+            analysisSummary: {
+              status: 'normal',
+              riskLevel: 'low',
+              confidence: 0.92,
+              reasons: [],
+              methods: ['textSimilarity', 'metadataAnomaly'],
+              analyzedCount: 4,
+              evidenceStatus: 'sufficient',
+              analyzedAt: '2026-11-25T08:00:00Z',
+              signalCounts: { textSimilarity: 0, metadataAnomaly: 0 },
+              signals: [],
+            },
+          },
+        },
+
+        suspicious: {
+          restaurant: { id: 'bep-nha-an', name: 'Bếp Nhà An (Mẫu Đáng ngờ)' },
+          overview: {
+            restaurantId: 'bep-nha-an',
+            positive: [
+              {
+                reviewId: 'rev-an-01',
+                rating: 4,
+                textExcerpt: 'Cơm phần nóng hổi, canh chua vừa vị, thích hợp ăn trưa văn phòng.',
+                createdAt: '2026-11-15T12:00:00Z',
+                sentiment: 'positive',
+              },
+            ],
+            negative: [
+              {
+                reviewId: 'rev-an-02',
+                rating: 2,
+                textExcerpt: 'Món kho hơi mặn so với khẩu vị của mình, không gian buổi trưa hơi ồn.',
+                createdAt: '2026-11-16T12:40:00Z',
+                sentiment: 'negative',
+              },
+            ],
+            suspicious: [
+              {
+                reviewId: 'rev-an-03',
+                rating: 5,
+                textExcerpt: 'Quán ăn ngon xuất sắc nhất quận, nhân viên tuyệt vời sẽ quay lại ủng hộ mãi.',
+                score: 0.96,
+                flags: ['duplicateContent', 'postingBurst', 'extremeRating'],
+                evidence: 'Trùng lặp 96% nội dung với rev-an-04 và thuộc cụm 3 đánh giá đăng trong vòng 10 phút.',
+                relatedReviewIds: ['rev-an-04', 'rev-an-05'],
+              },
+              {
+                reviewId: 'rev-an-04',
+                rating: 5,
+                textExcerpt: 'Quán ăn ngon xuất sắc nhất quận, nhân viên tuyệt vời sẽ quay lại ủng hộ mãi.',
+                score: 0.96,
+                flags: ['duplicateContent', 'postingBurst', 'extremeRating'],
+                evidence: 'Trùng lặp 96% nội dung với rev-an-03 và thuộc cụm 3 đánh giá đăng trong vòng 10 phút.',
+                relatedReviewIds: ['rev-an-03', 'rev-an-05'],
+              },
+              {
+                reviewId: 'rev-an-05',
+                rating: 5,
+                textExcerpt: 'Quán cực kỳ ngon, phục vụ nhanh và không gian rất đẹp, đáng để thử ngay.',
+                score: 0.75,
+                flags: ['postingBurst', 'extremeRating'],
+                evidence: 'Thuộc cụm 3 đánh giá 5 sao đăng liên tiếp trong vòng 10 phút cùng rev-an-03 và rev-an-04.',
+                relatedReviewIds: ['rev-an-03', 'rev-an-04'],
+              },
+            ],
+            neutralCount: 0,
+            counts: { positive: 1, negative: 1, neutral: 0, suspicious: 3, total: 5 },
+            analysisSummary: {
+              status: 'potentially_suspicious',
+              riskLevel: 'high',
+              confidence: 0.86,
+              reasons: [
+                'Ghi nhận cặp đánh giá rev-an-03 và rev-an-04 có độ tương đồng nội dung 96%.',
+                'Ghi nhận cụm 3 đánh giá 5 sao đăng dồn dập trong cùng khoảng 10 phút.',
+              ],
+              methods: ['textSimilarity', 'metadataAnomaly'],
+              analyzedCount: 5,
+              evidenceStatus: 'sufficient',
+              analyzedAt: '2026-11-25T08:05:00Z',
+              signalCounts: { textSimilarity: 1, metadataAnomaly: 3 },
+              signals: [
+                {
+                  key: 'text_similarity',
+                  method: 'textSimilarity',
+                  score: 0.96,
+                  similarityPercent: 96,
+                  reviewIds: ['rev-an-03', 'rev-an-04'],
+                  flags: ['duplicateContent'],
+                  detail: 'Cặp đánh giá rev-an-03 và rev-an-04 có nội dung gần trùng (96%).',
+                },
+                {
+                  key: 'metadata_anomaly',
+                  method: 'metadataAnomaly',
+                  score: 0.75,
+                  reviewId: 'rev-an-03',
+                  reviewIds: ['rev-an-03'],
+                  rating: 5,
+                  flags: ['postingBurst', 'extremeRating'],
+                  detail: "Đánh giá ID 'rev-an-03' thuộc cụm từ 3 đánh giá trở lên đăng trong vòng 10 phút.",
+                },
+                {
+                  key: 'metadata_anomaly',
+                  method: 'metadataAnomaly',
+                  score: 0.75,
+                  reviewId: 'rev-an-04',
+                  reviewIds: ['rev-an-04'],
+                  rating: 5,
+                  flags: ['postingBurst', 'extremeRating'],
+                  detail: "Đánh giá ID 'rev-an-04' thuộc cụm từ 3 đánh giá trở lên đăng trong vòng 10 phút.",
+                },
+                {
+                  key: 'metadata_anomaly',
+                  method: 'metadataAnomaly',
+                  score: 0.75,
+                  reviewId: 'rev-an-05',
+                  reviewIds: ['rev-an-05'],
+                  rating: 5,
+                  flags: ['postingBurst', 'extremeRating'],
+                  detail: "Đánh giá ID 'rev-an-05' thuộc cụm từ 3 đánh giá trở lên đăng trong vòng 10 phút.",
+                },
+              ],
+            },
+          },
+        },
+
+        conflict: {
+          restaurant: { id: 'la-xanh-bistro', name: 'Lá Xanh Bistro (Mâu thuẫn & Null rating)' },
+          overview: {
+            restaurantId: 'la-xanh-bistro',
+            positive: [
+              {
+                reviewId: 'rev-lx-01',
+                rating: 4,
+                textExcerpt: 'Salad tươi, nước sốt vừa miệng và không gian nhiều cây xanh dễ chịu.',
+                createdAt: '2026-11-17T19:10:00Z',
+                sentiment: 'positive',
+              },
+            ],
+            negative: [],
+            suspicious: [
+              {
+                reviewId: 'rev-lx-02',
+                rating: 5,
+                textExcerpt: 'Đồ ăn quá dở, đợi món hơn 40 phút và thái độ phục vụ rất tệ.',
+                score: 0.85,
+                flags: ['textRatingConflict'],
+                evidence: 'Nội dung mang sắc thái tiêu cực nhưng điểm chấm là 5.0 sao.',
+                relatedReviewIds: [],
+              },
+              {
+                reviewId: 'rev-lx-03',
+                rating: null,
+                textExcerpt: 'Đánh giá thiếu điểm số sao nhưng mang đặc trưng siêu dữ liệu khác biệt.',
+                score: 0.62,
+                flags: ['metadataOutlier'],
+                evidence: 'Kiểm tra BR-04: thiếu rating nên không vẽ chấm tròn giả ở mức 3/5 sao.',
+                relatedReviewIds: [],
+              },
+            ],
+            neutralCount: 1,
+            counts: { positive: 1, negative: 0, neutral: 1, suspicious: 2, total: 4 },
+            analysisSummary: {
+              status: 'potentially_suspicious',
+              riskLevel: 'medium',
+              confidence: 0.78,
+              reasons: [
+                'Phát hiện mâu thuẫn giữa nội dung chê và điểm 5 sao ở đánh giá rev-lx-02.',
+              ],
+              methods: ['textSimilarity', 'metadataAnomaly'],
+              analyzedCount: 4,
+              evidenceStatus: 'sufficient',
+              analyzedAt: '2026-11-25T08:10:00Z',
+              signalCounts: { textSimilarity: 0, metadataAnomaly: 2 },
+              signals: [
+                {
+                  key: 'metadata_anomaly',
+                  method: 'metadataAnomaly',
+                  score: 0.85,
+                  reviewId: 'rev-lx-02',
+                  reviewIds: ['rev-lx-02'],
+                  rating: 5,
+                  flags: ['textRatingConflict'],
+                  detail: "Đánh giá ID 'rev-lx-02' có mâu thuẫn giữa nội dung và điểm số (5.0 sao).",
+                },
+                {
+                  key: 'metadata_anomaly',
+                  method: 'metadataAnomaly',
+                  score: 0.62,
+                  reviewId: 'rev-lx-03',
+                  reviewIds: ['rev-lx-03'],
+                  rating: null,
+                  flags: ['metadataOutlier'],
+                  detail: "Đánh giá ID 'rev-lx-03' thiếu số sao và có đặc trưng metadata khác biệt.",
+                },
+              ],
+            },
+          },
+        },
+
+        insufficient: {
+          restaurant: { id: 'mi-quang-song-thu', name: 'Mì Quảng Sông Thu (Thiếu bằng chứng)' },
+          overview: {
+            restaurantId: 'mi-quang-song-thu',
+            positive: [
+              {
+                reviewId: 'rev-mq-01',
+                rating: 4,
+                textExcerpt: 'Mì quảng thơm mùi nén, bánh tráng giòn và nước nhân vừa miệng.',
+                createdAt: '2026-11-21T09:30:00Z',
+                sentiment: 'positive',
+              },
+            ],
+            // counts.negative = 1 nhưng mảng rỗng để kiểm tra thông báo review quá ngắn
+            negative: [],
+            suspicious: [],
+            neutralCount: 0,
+            counts: { positive: 1, negative: 1, neutral: 0, suspicious: 0, total: 2 },
+            analysisSummary: {
+              status: 'insufficient_evidence',
+              riskLevel: null,
+              confidence: null,
+              reasons: [],
+              methods: ['textSimilarity', 'metadataAnomaly'],
+              analyzedCount: 2,
+              evidenceStatus: 'insufficient_evidence',
+              analyzedAt: '2026-11-25T08:15:00Z',
+              signalCounts: { textSimilarity: 0, metadataAnomaly: 0 },
+              signals: [],
+            },
+          },
+        },
+
+        empty: {
+          restaurant: { id: 'quan-moi-mo', name: 'Quán Mới Mở (0 đánh giá)' },
+          overview: {
+            restaurantId: 'quan-moi-mo',
+            positive: [],
+            negative: [],
+            suspicious: [],
+            neutralCount: 0,
+            counts: { positive: 0, negative: 0, neutral: 0, suspicious: 0, total: 0 },
+            analysisSummary: {
+              status: 'insufficient_evidence',
+              riskLevel: null,
+              confidence: null,
+              reasons: [],
+              methods: ['textSimilarity', 'metadataAnomaly'],
+              analyzedCount: 0,
+              evidenceStatus: 'insufficient_evidence',
+              analyzedAt: '2026-11-25T08:20:00Z',
+              signalCounts: { textSimilarity: 0, metadataAnomaly: 0 },
+              signals: [],
+            },
+          },
+        },
+      };
 
       const root = document.getElementById('wp5-demo-root');
       const shell = createAppShell(root);
       shell.setBackAction({ visible: false });
 
-      // Mount feature vào UI Shell
-      const feature = mountReviewReliability(shell.main, {
-        restaurant: {
-          id: 'review-demo-restaurant',
-          name: 'Quán ăn mẫu - Review Reliability',
-        },
-        reviewsData: MOCK_REVIEWS_SCENARIOS['normal'],
-        onOpenFeedback() {
-          shell.showToast('Đã tạo điểm bàn giao sang feature Feedback.', 'info');
-        },
+      let activeScenarioKey = 'normal';
+      let feature = null;
+      let retryTimerId = null;
+
+      function clearRetryTimer() {
+        if (retryTimerId !== null) {
+          clearTimeout(retryTimerId);
+          retryTimerId = null;
+        }
+      }
+
+      function setActiveButton(selector) {
+        document.querySelectorAll('.debug-panel button').forEach((btn) => {
+          btn.classList.toggle('is-active', btn.matches(selector));
+        });
+      }
+
+      function mountScenario(key) {
+        clearRetryTimer();
+        activeScenarioKey = key;
+        const scenario = DEMO_SCENARIOS[key];
+        if (feature) {
+          feature.unmount();
+        }
+        feature = mountReviewReliability(shell.main, {
+          restaurant: scenario.restaurant,
+          overviewData: scenario.overview,
+        });
+        setActiveButton(`button[data-scenario="${key}"]`);
+      }
+
+      mountScenario('normal');
+
+      document.querySelectorAll('button[data-scenario]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          mountScenario(btn.dataset.scenario);
+        });
       });
 
-      // --- KẾT NỐI DEBUG PANEL VỚI FEATURE ---
-      document.getElementById('btn-normal').addEventListener('click', () => {
-        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['normal']);
-        feature.setSummaryData(summary);
-      });
-
-      document.getElementById('btn-suspicious').addEventListener('click', () => {
-        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['suspicious_burst']);
-        feature.setSummaryData(summary);
-      });
-
-      document.getElementById('btn-insufficient').addEventListener('click', () => {
-        const summary = analyzeReviewReliabilityMock(MOCK_REVIEWS_SCENARIOS['insufficient']);
-        feature.setSummaryData(summary);
-      });
-
-      document.getElementById('btn-loading').addEventListener('click', () => {
-        feature.setViewState('loading');
-      });
-
-      document.getElementById('btn-error').addEventListener('click', () => {
-        feature.setViewState('error');
+      document.querySelectorAll('button[data-state]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          clearRetryTimer();
+          feature?.setViewState(btn.dataset.state);
+          setActiveButton(`button[data-state="${btn.dataset.state}"]`);
+        });
       });
 
       root.addEventListener('review:retry-analysis', () => {
-        shell.showToast('Đang gọi lại API...', 'info');
-        setTimeout(() => {
-          feature.setViewState('default');
-          shell.showToast('Tải thành công.', 'success');
-        }, 1500);
+        clearRetryTimer();
+        shell.showToast('Đang gọi lại dữ liệu tổng quan...', 'info');
+        retryTimerId = setTimeout(() => {
+          retryTimerId = null;
+          const scenario = DEMO_SCENARIOS[activeScenarioKey];
+          feature?.setOverviewData(scenario.overview);
+          setActiveButton(`button[data-scenario="${activeScenarioKey}"]`);
+          shell.showToast('Tải lại thành công.', 'success');
+        }, 1000);
       });
     </script>
   </body>

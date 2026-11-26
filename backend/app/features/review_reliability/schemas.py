@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import Field
@@ -15,30 +16,52 @@ class ReviewReliabilitySignal(ApiModel):
     rating: float | None = Field(default=None, ge=0, le=5)
     flags: list[str] = Field(default_factory=list)
 
+
 class ReviewAnalyzeRequest(ApiModel):
-    """
-    [GIẢI THÍCH THIẾT KẾ SCHEMA REQUEST]
-    1. Vai trò "người gác cổng": Kiểm tra và chặn ngay các dữ liệu đầu vào không hợp lệ từ Frontend trước khi đi vào logic thuật toán[cite: 16].
-    2. Chuyển đổi định dạng: Do kế thừa `ApiModel`, biến `restaurant_id` (snake_case trong Python) sẽ tự động được chuyển thành `restaurantId` (camelCase) trên API để khớp đúng chuẩn giao diện[cite: 13, 14].
-    3. Ràng buộc method: Sử dụng regex pattern để bắt buộc Frontend chỉ được gửi 1 trong 3 chế độ quy định của MVP-04 ('textSimilarity', 'metadataAnomaly', 'combined')[cite: 13].
-    """
-    restaurant_id: str = Field(
-        ..., 
-        description="Mã định danh của nhà hàng cần phân tích đánh giá"
-    )
-    method: str = Field(
-        ..., 
-        pattern="^(textSimilarity|metadataAnomaly|combined)$",
-        description="Phương pháp phân tích được chỉ định"
+    restaurant_id: str = Field(..., description="Mã định danh nhà hàng")
+    method: Literal["textSimilarity", "metadataAnomaly", "combined"] = Field(
+        ..., description="Phương pháp phân tích độ tin cậy"
     )
 
 
 class ReviewAnalyzeResponse(ReviewReliabilitySummary):
-    """
-    Giữ hợp đồng tóm tắt dùng chung và bổ sung tín hiệu có cấu trúc để
-    frontend trực quan hóa kết quả mà không phải phân tích ngược chuỗi reasons.
-    """
     signals: list[ReviewReliabilitySignal] = Field(default_factory=list)
     signal_counts: dict[str, int] = Field(
         default_factory=lambda: {"textSimilarity": 0, "metadataAnomaly": 0}
     )
+
+
+class ReviewOverviewItem(ApiModel):
+    review_id: str
+    rating: float | None = Field(default=None, ge=0, le=5)
+    text_excerpt: str
+    created_at: datetime | None = None
+    sentiment: Literal["positive", "negative", "neutral"]
+
+
+class SuspiciousReviewItem(ApiModel):
+    review_id: str
+    rating: float | None = Field(default=None, ge=0, le=5)
+    text_excerpt: str
+    score: float = Field(ge=0, le=1)
+    flags: list[str] = Field(default_factory=list)
+    evidence: str
+    related_review_ids: list[str] = Field(default_factory=list)
+
+
+class ReviewGroupCounts(ApiModel):
+    positive: int = 0
+    negative: int = 0
+    neutral: int = 0
+    suspicious: int = 0
+    total: int = 0
+
+
+class ReviewOverviewResponse(ApiModel):
+    restaurant_id: str
+    positive: list[ReviewOverviewItem] = Field(default_factory=list)
+    negative: list[ReviewOverviewItem] = Field(default_factory=list)
+    suspicious: list[SuspiciousReviewItem] = Field(default_factory=list)
+    neutral_count: int = 0
+    counts: ReviewGroupCounts
+    analysis_summary: ReviewAnalyzeResponse

@@ -1,97 +1,114 @@
-import os
 import json
-import httpx
+import os
+import re
 from typing import Any
+
+import httpx
 from pydantic import BaseModel, ValidationError
 
-# Import kết nối Database theo đúng chuẩn Data Foundation
 from app.data.database import connect_database
-from app.data.repositories import ReviewRepository
+from app.data.repositories import RestaurantRepository, ReviewRepository
+
+BANNED_TERMS = ("giả mạo", "fake", "seeding", "phá hoại")
+METHOD_TO_SNAKE = {
+    "textSimilarity": "text_similarity",
+    "metadataAnomaly": "metadata_anomaly",
+    "combined": "combined",
+}
+
 
 class AgentExplanationSchema(BaseModel):
     reasons: list[str]
 
+
 class ReviewAgentProvider:
     def __init__(self):
         self.api_key = os.getenv("LLM_API_KEY")
-        # URL Endpoint của Colab (được cấu hình trong file .env)
-        self.colab_url = os.getenv("COLAB_API_URL", "http://localhost:8000/generate")
-        self.model_version = "colab-custom-llm"
-        self.prompt_version = "v1.0.0"
+        self.colab_url = os.getenv("COLAB_API_URL")
+        self.model_version = os.getenv("REVIEW_LLM_MODEL_VERSION", "colab-custom-llm")
+        self.prompt_version = "v1.1.0"
 
     def summarize_signals(self, signals: list[dict[str, Any]]) -> list[str]:
         if not signals:
             return []
 
-        # Nếu không có API Key hoặc đang bật chế độ test
-        if not self.api_key or os.getenv("USE_FAKE_AGENT") == "true":
+        if (
+            not self.api_key
+            or not self.colab_url
+            or os.getenv("USE_FAKE_AGENT", "").lower() == "true"
+        ):
             return self._fake_agent_call(signals)
 
         prompt = self._build_prompt(signals)
-
         try:
-            payload = {
-                "prompt": prompt,
-                "temperature": 0.3,
-                "max_tokens": 512
-            }
-            
+            payload = {"prompt": prompt, "temperature": 0.2, "max_tokens": 512}
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-
-            # Gọi HTTP POST tới Google Colab
-            with httpx.Client(timeout=45.0) as client:
+            with httpx.Client(timeout=30.0) as client:
                 response = client.post(self.colab_url, json=payload, headers=headers)
-                response.raise_for_status() 
-                
+                response.raise_for_status()
                 response_data = response.json()
-                # Tùy chỉnh field "output" theo đúng Contract API của trường bạn
-                response_content = response_data.get("output", '{"reasons": []}') 
-            
-            validated_data = AgentExplanationSchema.model_validate_json(response_content)
-            return validated_data.reasons
 
-        except ValidationError:
-            return ["Có khả năng đáng ngờ do ghi nhận các tín hiệu bất thường (lỗi định dạng)."]
-        except httpx.RequestError as exc:
-            return [f"Có khả năng đáng ngờ do ghi nhận tín hiệu bất thường (Lỗi API: {exc})."]
-        except Exception:
-            return ["Có khả năng đáng ngờ do ghi nhận tín hiệu bất thường."]
+            if not isinstance(response_data, dict) or "output" not in response_data:
+                return self._fake_agent_call(signals)
+
+            raw_content = response_data["output"]
+            if isinstance(raw_content, dict):
+                validated = AgentExplanationSchema.model_validate(raw_content)
+            elif isinstance(raw_content, str):
+                cleaned_json = self._extract_json_block(raw_content)
+                validated = AgentExplanationSchema.model_validate_json(cleaned_json)
+            else:
+                return self._fake_agent_call(signals)
+
+            if not validated.reasons or self._contains_banned_terms(validated.reasons):
+                return self._fake_agent_call(signals)
+            return validated.reasons
+
+        except (ValidationError, httpx.HTTPError, ValueError, TypeError, AttributeError):
+            return self._fake_agent_call(signals)
+
+    def _extract_json_block(self, raw: str) -> str:
+        match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, flags=re.DOTALL)
+        return match.group(1) if match else raw.strip()
+
+    def _contains_banned_terms(self, reasons: list[str]) -> bool:
+        joined = " ".join(reasons).lower()
+        return any(term in joined for term in BANNED_TERMS)
 
     def _build_prompt(self, signals: list[dict[str, Any]]) -> str:
-        return f"""
-        Hệ thống phân tích đánh giá nhà hàng vừa phát hiện các tín hiệu bất thường sau:
-        {json.dumps(signals, ensure_ascii=False, indent=2)}
-        
-        Nhiệm vụ: Dựa vào các tín hiệu trên, hãy viết danh sách lý do (reasons) ngắn gọn giải thích tại sao các đánh giá này là "potentially suspicious".
-        
-        Ràng buộc:
-        1. KHÔNG tự phán đoán hay thêm thắt thông tin.
-        2. TUYỆT ĐỐI KHÔNG dùng từ: giả mạo (fake), seeding, phá hoại.
-        3. Phải trả về JSON hợp lệ: {{"reasons": ["lý do 1", "lý do 2"]}}
-        """
+        return (
+            "Hệ thống phân tích đánh giá nhà hàng phát hiện các tín hiệu sau:\n"
+            f"{json.dumps(signals, ensure_ascii=False, indent=2)}\n\n"
+            "Nhiệm vụ: Viết danh sách lý do ngắn gọn giải thích vì sao kết quả ở mức 'potentially suspicious'.\n"
+            "Ràng buộc:\n"
+            "1. Chỉ dựa trên danh sách tín hiệu đã cung cấp, không suy diễn thêm.\n"
+            "2. Tuyệt đối không dùng các từ: giả mạo, fake, seeding, phá hoại.\n"
+            '3. Chỉ trả về JSON hợp lệ: {"reasons": ["lý do 1", "lý do 2"]}'
+        )
 
     def _fake_agent_call(self, signals: list[dict[str, Any]]) -> list[str]:
-        reasons = [f"Ghi nhận tín hiệu đáng ngờ: {s.get('detail')}" for s in signals if s.get("detail")]
-        if not reasons:
-            reasons.append("Phát hiện một số hành vi bất thường trong nhóm đánh giá.")
-        return reasons
-
+        reasons = [
+            f"Ghi nhận tín hiệu đáng chú ý: {s.get('detail')}"
+            for s in signals
+            if s.get("detail")
+        ]
+        return reasons or ["Phát hiện một số tín hiệu khác biệt cần lưu ý trong nhóm đánh giá."]
 
 class ReviewDataProvider:
-    def __init__(self):
-        pass
+    def restaurant_exists(self, restaurant_id: str) -> bool:
+        with connect_database() as connection:
+            return RestaurantRepository(connection).get(restaurant_id) is not None
 
     def get_reviews(self, restaurant_id: str):
-        """Lấy danh sách review từ database qua Repository của nhóm"""
         with connect_database() as connection:
-            repo = ReviewRepository(connection)
-            return repo.list_for_restaurant(restaurant_id)
+            return ReviewRepository(connection).list_for_restaurant(restaurant_id)
 
     def save_run(self, payload: dict[str, Any]) -> str:
-        """Lưu lại kết quả phân tích vào review_analysis_runs (Đã sửa lỗi Payload)"""
+        normalized = dict(payload)
+        if normalized.get("method") in METHOD_TO_SNAKE:
+            normalized["method"] = METHOD_TO_SNAKE[normalized["method"]]
         with connect_database() as connection:
-            repo = ReviewRepository(connection)
-            return repo.save_analysis_run(payload)
+            return ReviewRepository(connection).save_analysis_run(normalized)

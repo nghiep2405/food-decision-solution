@@ -4,6 +4,39 @@
  * Giả lập logic phân tích của Backend khi chạy ở chế độ Demo (không gọi API).
  * Hàm này trả về đối tượng khớp 100% với Data Contract `ReviewReliabilitySummary`.
  */
+
+export function normalizeReviewOverview(overviewData = null, fallbackSummary = null) {
+  const analysisSummary = overviewData?.analysisSummary ?? fallbackSummary ?? null;
+  if (!overviewData && !analysisSummary) {
+    return null;
+  }
+
+  const positive = Array.isArray(overviewData?.positive) ? overviewData.positive : [];
+  const negative = Array.isArray(overviewData?.negative) ? overviewData.negative : [];
+  const suspicious = Array.isArray(overviewData?.suspicious) ? overviewData.suspicious : [];
+  const neutralCount = Number.isFinite(overviewData?.neutralCount) ? overviewData.neutralCount : 0;
+
+  const counts = {
+    positive: Number.isFinite(overviewData?.counts?.positive) ? overviewData.counts.positive : positive.length,
+    negative: Number.isFinite(overviewData?.counts?.negative) ? overviewData.counts.negative : negative.length,
+    neutral: Number.isFinite(overviewData?.counts?.neutral) ? overviewData.counts.neutral : neutralCount,
+    suspicious: Number.isFinite(overviewData?.counts?.suspicious) ? overviewData.counts.suspicious : suspicious.length,
+    total: Number.isFinite(overviewData?.counts?.total)
+      ? overviewData.counts.total
+      : (analysisSummary?.analyzedCount ?? 0),
+  };
+
+  return {
+    restaurantId: overviewData?.restaurantId ?? null,
+    positive,
+    negative,
+    suspicious,
+    neutralCount,
+    counts,
+    analysisSummary,
+    hasOverviewPanels: Boolean(overviewData),
+  };
+}
 export function analyzeReviewReliabilityMock(reviews = [], method = 'combined') {
   const analyzedCount = reviews?.length || 0;
   const today = new Date().toISOString(); // Chuẩn ISO 8601 theo Data Contract
