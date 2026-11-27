@@ -2,7 +2,7 @@
 
 ## Dataset và quyền sử dụng
 
-20 menu synthetic được thiết kế riêng cho bài kiểm thử, không lấy ảnh/menu từ quán thật. Mỗi ảnh có 6 món với tên/giá VND được khai báo trực tiếp trong dữ liệu tham chiếu trước khi render bằng Pillow; không phải nhãn lấy từ OCR. `ground_truth_final.json` có `items_full`, `items_crop`, crop pixels và nhóm ảnh. Cần một thành viên đối chiếu trực quan từng ảnh với nhãn trước khi công nhận đã hoàn tất ground truth nhập tay. Các ảnh không thể đại diện cho menu chụp thực tế; nên bổ sung ảnh thực có quyền sử dụng trong một bộ test độc lập.
+20 menu synthetic được thiết kế riêng cho bài kiểm thử, không lấy ảnh/menu từ quán thật. Mỗi ảnh có 6 món với tên/giá VND được khai báo trực tiếp trong dữ liệu tham chiếu trước khi render bằng Pillow; không phải nhãn lấy từ OCR. `ground_truth_final.json` có `items_full`, `items_crop`, crop pixels và nhóm ảnh. Cần một thành viên đối chiếu trực quan từng ảnh với nhãn trước khi công nhận đã hoàn tất ground truth nhập tay. Dùng [GROUND_TRUTH_REVIEW.md](GROUND_TRUTH_REVIEW.md) để ghi nhận từng ảnh. Các ảnh không thể đại diện cho menu chụp thực tế; nên bổ sung ảnh thực có quyền sử dụng trong một bộ test độc lập.
 
 5 nhóm × 4 ảnh: clear, multi-column, rotated, low-light, focus-region. 5 ảnh dev (mỗi nhóm 1), 15 ảnh holdout test (mỗi nhóm 3). Không thay prompt hay default dựa trên holdout. Các vùng crop của nhóm focus-region chỉ chứa 3 trong 6 món; các nhóm khác chứa cả 6 món. 120 món full, 108 món crop. Mọi ảnh đều có giá chính xác, chưa kiểm tra đa biến thể, price range và ngoại tệ.
 
@@ -43,7 +43,7 @@ Nếu cả 4 lượt `ok`, kiểm tra raw/normalized output trước khi chạy 
 python -m app.features.menu.evaluation.benchmark run --output /tmp/final03-results
 ```
 
-Script lưu từng run và bỏ qua run đã có, kể cả lỗi. Nếu smoke lỗi do key/quota/model hoặc thay đổi cấu hình, sửa nguyên nhân và dùng thư mục output mới; không bỏ lỗi khỏi một lần benchmark đã công bố. Không dùng kết quả mock trong báo cáo. `manifest.json` chứa model, Tesseract version, SHA256 source (gồm prompt), ảnh và ground truth. `runs/` lưu cấu hình, crop, latency, capture raw text/structured output (visual có raw response khi nhận được), normalized items, status/error type; text API hiện không expose raw HTTP response lỗi. `summary.json` lưu kết quả. Latency end-to-end gồm crop/AI/Tesseract/normalizer, không gồm thời gian sửa tay.
+Script lưu từng run và bỏ qua run đã có, kể cả lỗi. Nếu smoke lỗi do key/quota/model hoặc thay đổi cấu hình, sửa nguyên nhân và dùng thư mục output mới; không bỏ lỗi khỏi một lần benchmark đã công bố. Không dùng kết quả mock trong báo cáo. `manifest.json` chứa model, prompt versions (`visual-v1`, `text-v1`), Tesseract version, SHA256 source (gồm prompt), ảnh và ground truth. `runs/` lưu cấu hình, crop, latency, capture raw text/structured output và raw response JSON của cả hai phương pháp khi nhận được trước khi parse nội dung, normalized items, status/error type; không ghi header/request key hoặc raw HTTP body của phản hồi không phải JSON. `summary.json` lưu kết quả. Latency end-to-end gồm crop/AI/Tesseract/normalizer, không gồm thời gian sửa tay.
 
 ## Định nghĩa metric
 
