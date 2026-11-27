@@ -444,7 +444,7 @@ function renderAdminOcrRoute() {
   activeFeature = mountAdminOcr(shell.main, {
     onCompleted(result, restaurant) {
       const name = restaurant?.name ?? result?.restaurantId ?? result?.restaurant_id ?? 'quán đã chọn';
-      shell.showToast(`Đã OCR và kích hoạt menu cho ${name}.`, 'success');
+      shell.showToast(`Đã OCR và lưu bản nháp menu cho ${name}.`, 'success');
     },
   });
 }
