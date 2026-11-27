@@ -344,3 +344,13 @@
 .ocr-focus-image span { position: absolute; box-sizing: border-box; border: 2px solid #16803c; background: #16803c22; pointer-events: none; }
 .ocr-focus-image span[hidden] { display: none; }
 .ocr-focus button { justify-self: start; }
+
+.ocr-verify-form { margin-block: 1rem; }
+.ocr-verify-form fieldset { border: 0; padding: 0; min-width: 0; }
+.ocr-verify-table { overflow-x: auto; margin-bottom: 1rem; }
+.ocr-verify-table table { border-collapse: collapse; width: 100%; min-width: 550px; }
+.ocr-verify-table th, .ocr-verify-table td { padding: .65rem; text-align: left; vertical-align: top; border-bottom: 1px solid #bbb; }
+.ocr-verify-form label { display: block; margin-bottom: .65rem; }
+.ocr-verify-form input:not([type="checkbox"]) { display: block; box-sizing: border-box; width: 100%; padding: .45rem; }
+.ocr-verify-variant { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-bottom: .7rem; }
+.ocr-verify-form [role="alert"] { margin-top: .5rem; }
