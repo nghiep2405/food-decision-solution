@@ -17,7 +17,7 @@ sudo apt-get update
 sudo apt-get install -y tesseract-ocr tesseract-ocr-vie tesseract-ocr-eng
 export TESSERACT_LANG=vie+eng
 tesseract --list-langs
-python -m pytest app/features/menu/evaluation/final03/test_benchmark.py -q
+python -m pytest app/features/menu/evaluation/test_benchmark.py -q
 ```
 
 Cấu hình Faculty AI theo `.env.example` và thông tin do nhóm cấp. Ví dụ (xác nhận đúng model hỗ trợ hình ảnh):
@@ -34,13 +34,13 @@ Không commit key. Không gửi key qua chat. Có thể dùng Codespaces secrets
 Smoke test thực: chỉ 1 ảnh × 4 cấu hình (tốn tối đa 4 lượt gọi Faculty AI):
 
 ```bash
-python -m app.features.menu.evaluation.final03.benchmark run --limit 1 --output /tmp/final03-results
+python -m app.features.menu.evaluation.benchmark run --limit 1 --output /tmp/final03-results
 ```
 
 Nếu cả 4 lượt `ok`, kiểm tra raw/normalized output trước khi chạy tiếp 76 lượt (phải có quota và quyền dùng API):
 
 ```bash
-python -m app.features.menu.evaluation.final03.benchmark run --output /tmp/final03-results
+python -m app.features.menu.evaluation.benchmark run --output /tmp/final03-results
 ```
 
 Script lưu từng run và bỏ qua run đã có, kể cả lỗi. Nếu smoke lỗi do key/quota/model hoặc thay đổi cấu hình, sửa nguyên nhân và dùng thư mục output mới; không bỏ lỗi khỏi một lần benchmark đã công bố. Không dùng kết quả mock trong báo cáo. `manifest.json` chứa model, Tesseract version, SHA256 source (gồm prompt), ảnh và ground truth. `runs/` lưu cấu hình, crop, latency, capture raw text/structured output (visual có raw response khi nhận được), normalized items, status/error type; text API hiện không expose raw HTTP response lỗi. `summary.json` lưu kết quả. Latency end-to-end gồm crop/AI/Tesseract/normalizer, không gồm thời gian sửa tay.
@@ -55,7 +55,7 @@ Script lưu từng run và bỏ qua run đã có, kể cả lỗi. Nếu smoke l
 - Điền đủ correction_count và correction_seconds cho từng run thực sự đã review (để trống nếu chưa đo). Chạy lại summary:
 
 ```bash
-python -m app.features.menu.evaluation.final03.benchmark summary --output /tmp/final03-results
+python -m app.features.menu.evaluation.benchmark summary --output /tmp/final03-results
 ```
 
 ## Chọn default

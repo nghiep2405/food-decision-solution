@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from PIL import Image
-from app.features.menu.evaluation.final03.benchmark import ROOT, CONFIGS, score, summarize, read_json, run_one
+from app.features.menu.evaluation.benchmark import ROOT, CONFIGS, score, summarize, read_json, run_one
 from app.features.menu import ocr_service
 from app.data.contracts import NormalizedMenu
 

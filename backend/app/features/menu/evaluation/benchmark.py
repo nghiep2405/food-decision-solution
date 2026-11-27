@@ -1,4 +1,4 @@
-"""FINAL-03 benchmark. Run from backend with python -m app.features.menu.evaluation.final03.benchmark."""
+"""FINAL-03 benchmark. Run from backend with python -m app.features.menu.evaluation.benchmark."""
 import argparse
 import csv
 import hashlib
