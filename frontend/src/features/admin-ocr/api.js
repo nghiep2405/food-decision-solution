@@ -12,6 +12,6 @@ export async function fetchAdminOcrData() {
   };
 }
 
-export function runMenuOcr({ restaurantId, image, method }) {
-  return uploadMenuForOcr({ restaurantId, image, method });
+export function runMenuOcr({ restaurantId, image, method, crop }) {
+  return uploadMenuForOcr({ restaurantId, image, method, crop });
 }
