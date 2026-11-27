@@ -1,6 +1,6 @@
 {
   "dataset": "final03_synthetic_v1",
-  "annotation_status": "authored_reference_labels_pending_human_review",
+  "annotation_status": "human_reviewed"
   "samples": [
     {
       "image_file": "images/01_clear.png",
