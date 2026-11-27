@@ -30,6 +30,8 @@ from app.features.menu.schemas import (
     OCRConfigStatus,
 )
 
+from app.features.menu.verification import VerifyMenuRequest, verify_menu
+
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["menu-ocr"])
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
@@ -261,3 +263,9 @@ async def upload_menu_for_ocr(
         if isinstance(exc, OCRDependencyError):
             raise HTTPException(503, str(exc)) from exc
         raise HTTPException(502, "Xử lý OCR thất bại; kiểm tra log backend.") from exc
+
+
+@router.patch('/menus/{version_id}/verify')
+def confirm_menu(version_id: str, payload: VerifyMenuRequest):
+    with connect_database() as connection:
+        return verify_menu(connection, version_id, payload)
