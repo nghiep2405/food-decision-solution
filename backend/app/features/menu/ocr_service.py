@@ -3,6 +3,7 @@ from io import BytesIO
 import os
 from pathlib import Path
 import shutil
+import subprocess
 from uuid import uuid4
 
 from PIL import Image
@@ -16,6 +17,9 @@ from app.data.contracts import (
     PriceRange,
     VerificationStatus,
 )
+
+
+VISUAL_PROMPT_VERSION = "visual-v1"
 
 
 class OCRDependencyError(RuntimeError):
@@ -73,11 +77,17 @@ def tesseract_languages_available(language: str | None = None) -> bool:
         return False
     requested = (language or os.getenv("TESSERACT_LANG", "vie+eng")).split("+")
     data_directory = find_tessdata_directory(command)
-    return bool(data_directory) and all(
-        (data_directory / f"{code}.traineddata").is_file()
-        for code in requested
-        if code
-    )
+    if data_directory:
+        return all((data_directory / f"{code}.traineddata").is_file()
+                   for code in requested if code)
+    # Linux packages commonly install tessdata under /usr/share, not beside the binary.
+    try:
+        result = subprocess.run([command, "--list-langs"], capture_output=True,
+                                text=True, timeout=5, check=True)
+        available = set(result.stdout.splitlines())
+        return all(code in available for code in requested if code)
+    except (OSError, subprocess.SubprocessError):
+        return False
 
 
 def normalize_menu_output(
