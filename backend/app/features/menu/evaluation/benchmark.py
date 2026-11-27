@@ -1,6 +1,7 @@
 """FINAL-03 benchmark. Run from backend with python -m app.features.menu.evaluation.benchmark."""
 import argparse
 import csv
+from functools import partial
 import hashlib
 import json
 import os
@@ -62,7 +63,7 @@ def run_one(sample, config):
         if config.startswith('visual'):
             menu = ocr_service.extract_menu_visual(data, 'benchmark', 'benchmark', capture=capture)
         else:
-            menu = ocr_service.extract_menu_text_pipeline(data, 'benchmark', 'benchmark', ai_client.structure_menu_text, capture=capture)
+            menu = ocr_service.extract_menu_text_pipeline(data, 'benchmark', 'benchmark', partial(ai_client.structure_menu_text, capture=capture), capture=capture)
         row['items'] = menu.model_dump(mode='json', by_alias=True)['items']
         row['status'] = 'ok'
     except Exception as exc:
@@ -148,7 +149,9 @@ def main():
         # Source hashes identify the actual implementation and embedded prompts.
         manifest = {'dataset_sha256': hashlib.sha256(dataset_file.read_bytes()).hexdigest(),
                     'images_sha256': {s['image_file']: hashlib.sha256((ROOT/s['image_file']).read_bytes()).hexdigest() for s in samples},
-                    'model': os.getenv('FACULTY_AI_MODEL'), 'language': os.getenv('TESSERACT_LANG','vie+eng'),
+                    'model': os.getenv('FACULTY_AI_MODEL'),
+                    'prompt_versions': {'visual': ocr_service.VISUAL_PROMPT_VERSION, 'text_pipeline': ai_client.TEXT_PROMPT_VERSION},
+                    'language': os.getenv('TESSERACT_LANG','vie+eng'),
                     'source_sha256': {m.__name__: hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest() for m in (ai_client, crop, ocr_service)},
                     'tesseract_version': str(ocr_service.pytesseract.get_tesseract_version())}
         manifest_path = out / 'manifest.json'
