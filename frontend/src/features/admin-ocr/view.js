@@ -1,6 +1,8 @@
 import { escapeHtml, formatVnd } from '../../core/dom.js';
-import { fetchAdminOcrData, runMenuOcr } from './api.js';
+import { fetchAdminOcrData, runMenuOcr, verifyMenuDraft } from './api.js';
 import { formatFileSize, methodLabel, validateOcrImage } from './algorithm.js';
+
+import { renderVerification, verificationPayload } from './verification.js';
 
 const verificationLabel = Object.freeze({
   verified: 'Đã xác minh',
@@ -38,8 +40,8 @@ function renderMenuResult(result) {
   return `
     <section class="admin-ocr-result" aria-labelledby="admin-ocr-result-title">
       <div class="admin-ocr-result__header">
-        <div><p class="admin-ocr-kicker">OCR COMPLETED</p><h2 id="admin-ocr-result-title">Menu nháp — chưa xác minh</h2></div>
-        <span class="admin-ocr-status admin-ocr-status--success">Chưa xác minh</span>
+        <div><p class="admin-ocr-kicker">OCR COMPLETED</p><h2 id="admin-ocr-result-title">${menu.verificationStatus === 'verified' ? 'Menu đã xác minh — đang hoạt động' : 'Menu nháp — chưa xác minh'}</h2></div>
+        <span class="admin-ocr-status admin-ocr-status--success">${menu.verificationStatus === 'verified' ? 'Đã xác minh' : 'Chưa xác minh'}</span>
       </div>
       <dl class="admin-ocr-run-meta">
         <div><dt>Phương pháp</dt><dd>${escapeHtml(methodLabel(result.method))}</dd></div>
@@ -66,6 +68,7 @@ function renderMenuResult(result) {
           </div>
         </section>
       `).join('') : '<p class="admin-ocr-empty">AI không trích xuất được món nào từ ảnh này.</p>'}
+      ${menu.verificationStatus === 'verified' ? `<p>Đã xác nhận bởi ${escapeHtml(result.verifiedBy ?? '')} · ${escapeHtml(formatDate(result.verifiedAt))}. Số trường đã sửa: ${result.corrections?.length ?? 0}.</p>` : renderVerification(menu)}
       <details class="admin-ocr-json"><summary>Xem JSON chuẩn hóa</summary><pre>${escapeHtml(JSON.stringify(menu, null, 2))}</pre></details>
     </section>`;
 }
@@ -83,6 +86,7 @@ export function createAdminOcrView(options = {}) {
   let submitError = null;
   let loading = true;
   let submitting = false;
+  let verifying = false;
   let selectedRestaurantId = '';
   let selectedMethod = 'visual';
 
@@ -148,10 +152,10 @@ export function createAdminOcrView(options = {}) {
           <aside class="admin-ocr-guide">
             <p class="admin-ocr-kicker">PIPELINE</p><h2>Điều gì sẽ xảy ra?</h2>
             <ol><li><span>01</span><div><strong>Xác thực ảnh</strong><small>Backend kiểm tra quán, loại file và giới hạn 10 MB.</small></div></li><li><span>02</span><div><strong>Trích xuất</strong><small>Visual AI hoặc Tesseract + AI đọc món, biến thể và giá.</small></div></li><li><span>03</span><div><strong>Chuẩn hóa</strong><small>Giá trị không chắc chắn được giữ là null, không tự suy đoán.</small></div></li><li><span>04</span><div><strong>Lưu bản nháp</strong><small>Ảnh, OCR run và menu version được lưu; menu active không đổi.</small></div></li></ol>
-            <div class="admin-ocr-guide__note"><strong>Lưu ý demo</strong><p>Menu nháp chưa được kích hoạt. Bước xác nhận thủ công sẽ được bổ sung tiếp.</p></div>
+            <div class="admin-ocr-guide__note"><strong>Lưu ý demo</strong><p>Menu nháp chưa được kích hoạt. Kiểm tra và sửa thông tin rồi xác nhận để kích hoạt menu.</p></div>
           </aside>
         </div>
-        ${result ? `<div class="admin-ocr-result-actions"><p>Quán: <strong>${escapeHtml(selectedRestaurant()?.name ?? result.restaurantId ?? result.restaurant_id)}</strong></p><button class="ui-button ui-button--outline" type="button" data-action="clear-result">Chạy ảnh khác</button></div>${renderMenuResult(result)}` : ''}
+        ${result ? `<div class="admin-ocr-result-actions"><p>Quán: <strong>${escapeHtml(restaurants.find(r => r.id === (result.restaurantId ?? result.restaurant_id))?.name ?? result.restaurantId ?? result.restaurant_id)}</strong></p><button class="ui-button ui-button--outline" type="button" data-action="clear-result">Chạy ảnh khác</button></div>${renderMenuResult(result)}` : ''}
       </section>`;
     const cropImage = root.querySelector('[data-role="crop-image"]');
     if (cropImage) {
@@ -216,6 +220,7 @@ export function createAdminOcrView(options = {}) {
   }
 
   function setFile(file) {
+    if (verifying || submitting) return;
     crop = null;
     dragStart = null;
     if (!file) {
@@ -243,7 +248,29 @@ export function createAdminOcrView(options = {}) {
   }
 
   async function handleSubmit(event) {
-    if (!event.target.matches('[data-role="ocr-form"]')) return;
+    if (event.target.matches('[data-role="verify-form"]')) {
+      event.preventDefault();
+      if (verifying || submitting || !result?.menu) return;
+      const form = event.target;
+      const errorBox = form.querySelector('[data-role="verify-error"]');
+      const fields = form.querySelector('[data-role="verify-fields"]');
+      try {
+        const payload = verificationPayload(result.menu, new FormData(form));
+        verifying = true;
+        fields.disabled = true;
+        errorBox.textContent = 'Đang xác nhận…';
+        const confirmed = await verifyMenuDraft(result.menu.menuVersionId, payload);
+        result = { ...result, ...confirmed, menu_version_id: confirmed.menu.menuVersionId };
+        render();
+      } catch (error) {
+        errorBox.textContent = error.message;
+      } finally {
+        verifying = false;
+        fields.disabled = false;
+      }
+      return;
+    }
+    if (verifying || !event.target.matches('[data-role="ocr-form"]')) return;
     event.preventDefault();
     const data = new FormData(event.target);
     selectedRestaurantId = String(data.get('restaurantId') ?? selectedRestaurantId);
@@ -274,6 +301,7 @@ export function createAdminOcrView(options = {}) {
   }
 
   function handleClick(event) {
+    if (verifying || submitting) return;
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (action === 'reset-crop') { crop = null; drawCrop(); }
     if (action === 'retry-bootstrap') loadBootstrap();
