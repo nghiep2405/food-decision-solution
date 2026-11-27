@@ -5,7 +5,10 @@ import os
 import httpx
 
 
-def structure_menu_text(raw_text: str) -> dict:
+TEXT_PROMPT_VERSION = "text-v1"
+
+
+def structure_menu_text(raw_text: str, *, capture: dict | None = None) -> dict:
     """
     Gửi văn bản OCR đến AI để chuyển thành JSON.
     Không tự đoán món ăn hoặc giá.
@@ -85,6 +88,8 @@ def structure_menu_text(raw_text: str) -> dict:
         response.raise_for_status()
 
     result = response.json()
+    if capture is not None:
+        capture["raw_response"] = result
     content = result["choices"][0]["message"]["content"]
 
     if not isinstance(content, str):

@@ -118,9 +118,18 @@ class MenuRepository:
             """,
             (restaurant_id,),
         ).fetchone()
+        return self._read_menu_version(version)
+
+    def get_menu_version(self, version_id: str) -> NormalizedMenu | None:
+        version = self.connection.execute(
+            "SELECT * FROM menu_versions WHERE id = ?", (version_id,)
+        ).fetchone()
+        return self._read_menu_version(version)
+
+    def _read_menu_version(self, version) -> NormalizedMenu | None:
         if not version:
             return None
-
+        restaurant_id = version["restaurant_id"]
         items: list[MenuItem] = []
         item_rows = self.connection.execute(
             "SELECT * FROM menu_items WHERE menu_version_id = ? ORDER BY category, original_name",

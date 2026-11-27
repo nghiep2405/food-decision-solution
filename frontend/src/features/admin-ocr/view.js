@@ -1,6 +1,8 @@
 import { escapeHtml, formatVnd } from '../../core/dom.js';
-import { fetchAdminOcrData, runMenuOcr } from './api.js';
+import { fetchAdminOcrData, runMenuOcr, verifyMenuDraft } from './api.js';
 import { formatFileSize, methodLabel, validateOcrImage } from './algorithm.js';
+
+import { renderVerification, verificationPayload } from './verification.js';
 
 const verificationLabel = Object.freeze({
   verified: 'Đã xác minh',
@@ -38,8 +40,8 @@ function renderMenuResult(result) {
   return `
     <section class="admin-ocr-result" aria-labelledby="admin-ocr-result-title">
       <div class="admin-ocr-result__header">
-        <div><p class="admin-ocr-kicker">OCR COMPLETED</p><h2 id="admin-ocr-result-title">Menu đã được chuẩn hóa và lưu</h2></div>
-        <span class="admin-ocr-status admin-ocr-status--success">Thành công</span>
+        <div><p class="admin-ocr-kicker">OCR COMPLETED</p><h2 id="admin-ocr-result-title">${menu.verificationStatus === 'verified' ? 'Menu đã xác minh — đang hoạt động' : 'Menu nháp — chưa xác minh'}</h2></div>
+        <span class="admin-ocr-status admin-ocr-status--success">${menu.verificationStatus === 'verified' ? 'Đã xác minh' : 'Chưa xác minh'}</span>
       </div>
       <dl class="admin-ocr-run-meta">
         <div><dt>Phương pháp</dt><dd>${escapeHtml(methodLabel(result.method))}</dd></div>
@@ -66,6 +68,7 @@ function renderMenuResult(result) {
           </div>
         </section>
       `).join('') : '<p class="admin-ocr-empty">AI không trích xuất được món nào từ ảnh này.</p>'}
+      ${menu.verificationStatus === 'verified' ? `<p>Đã xác nhận bởi ${escapeHtml(result.verifiedBy ?? '')} · ${escapeHtml(formatDate(result.verifiedAt))}. Số trường đã sửa: ${result.corrections?.length ?? 0}.</p>` : renderVerification(menu)}
       <details class="admin-ocr-json"><summary>Xem JSON chuẩn hóa</summary><pre>${escapeHtml(JSON.stringify(menu, null, 2))}</pre></details>
     </section>`;
 }
@@ -77,10 +80,13 @@ export function createAdminOcrView(options = {}) {
   let selectedFile = null;
   let previewUrl = null;
   let result = null;
+  let crop = null;
+  let dragStart = null;
   let bootstrapError = null;
   let submitError = null;
   let loading = true;
   let submitting = false;
+  let verifying = false;
   let selectedRestaurantId = '';
   let selectedMethod = 'visual';
 
@@ -116,7 +122,7 @@ export function createAdminOcrView(options = {}) {
     root.innerHTML = `
       <section class="admin-ocr-page" aria-labelledby="admin-ocr-title">
         <header class="admin-ocr-hero">
-          <div><p class="admin-ocr-kicker">ADMIN DEMO · MENU OCR</p><h1 id="admin-ocr-title">Biến ảnh menu thành dữ liệu có cấu trúc</h1><p>Chọn quán từ cơ sở dữ liệu, tải ảnh menu và chạy một trong hai pipeline OCR. Kết quả thành công được lưu thành menu active mới của quán.</p></div>
+          <div><p class="admin-ocr-kicker">ADMIN DEMO · MENU OCR</p><h1 id="admin-ocr-title">Biến ảnh menu thành dữ liệu có cấu trúc</h1><p>Chọn quán từ cơ sở dữ liệu, tải ảnh menu và chạy một trong hai pipeline OCR. Kết quả được lưu thành bản nháp, không thay menu đang active.</p></div>
           <div class="admin-ocr-hero__mark" aria-hidden="true"><span>OCR</span><small>image → menu.json</small></div>
         </header>
         ${configPanel()}
@@ -137,19 +143,63 @@ export function createAdminOcrView(options = {}) {
               <input type="file" name="image" accept="image/jpeg,image/png,image/webp" data-role="file-input" />
               ${filePanel()}
             </label>
+            ${selectedFile ? `<section class="ocr-focus"><strong>Vùng OCR (tùy chọn)</strong><p>Kéo một hình chữ nhật trên ảnh để chọn vùng cần đọc.</p><div class="ocr-focus-image" data-role="crop-stage"><img data-role="crop-image" src="${escapeHtml(previewUrl)}" alt="Ảnh menu gốc để chọn vùng OCR" draggable="false"/><span data-role="crop-box" hidden></span></div><button type="button" data-action="reset-crop">Dùng toàn bộ ảnh</button><small data-role="crop-status">Đang dùng toàn bộ ảnh</small></section>` : ''}
             ${submitError ? `<div class="admin-ocr-error" role="alert"><strong>Không thể hoàn tất OCR</strong><p>${escapeHtml(submitError)}</p></div>` : ''}
             <button class="ui-button ui-button--primary admin-ocr-submit" type="submit" ${submitting || loading || Boolean(bootstrapError) ? 'disabled' : ''}>
-              ${submitting ? '<span class="ui-spinner" aria-hidden="true"></span> Đang gửi ảnh và xử lý…' : 'Chạy OCR và lưu menu →'}
+              ${submitting ? '<span class="ui-spinner" aria-hidden="true"></span> Đang gửi ảnh và xử lý…' : 'Chạy OCR và lưu bản nháp →'}
             </button>
           </form>
           <aside class="admin-ocr-guide">
             <p class="admin-ocr-kicker">PIPELINE</p><h2>Điều gì sẽ xảy ra?</h2>
-            <ol><li><span>01</span><div><strong>Xác thực ảnh</strong><small>Backend kiểm tra quán, loại file và giới hạn 10 MB.</small></div></li><li><span>02</span><div><strong>Trích xuất</strong><small>Visual AI hoặc Tesseract + AI đọc món, biến thể và giá.</small></div></li><li><span>03</span><div><strong>Chuẩn hóa</strong><small>Giá trị không chắc chắn được giữ là null, không tự suy đoán.</small></div></li><li><span>04</span><div><strong>Lưu và kích hoạt</strong><small>Ảnh, OCR run và menu version được lưu; menu mới trở thành active.</small></div></li></ol>
-            <div class="admin-ocr-guide__note"><strong>Lưu ý demo</strong><p>Chạy OCR sẽ thay menu active của quán đã chọn. Hãy dùng ảnh thử nghiệm và kiểm tra JSON trước khi trình diễn.</p></div>
+            <ol><li><span>01</span><div><strong>Xác thực ảnh</strong><small>Backend kiểm tra quán, loại file và giới hạn 10 MB.</small></div></li><li><span>02</span><div><strong>Trích xuất</strong><small>Visual AI hoặc Tesseract + AI đọc món, biến thể và giá.</small></div></li><li><span>03</span><div><strong>Chuẩn hóa</strong><small>Giá trị không chắc chắn được giữ là null, không tự suy đoán.</small></div></li><li><span>04</span><div><strong>Lưu bản nháp</strong><small>Ảnh, OCR run và menu version được lưu; menu active không đổi.</small></div></li></ol>
+            <div class="admin-ocr-guide__note"><strong>Lưu ý demo</strong><p>Menu nháp chưa được kích hoạt. Kiểm tra và sửa thông tin rồi xác nhận để kích hoạt menu.</p></div>
           </aside>
         </div>
-        ${result ? `<div class="admin-ocr-result-actions"><p>Quán: <strong>${escapeHtml(selectedRestaurant()?.name ?? result.restaurantId ?? result.restaurant_id)}</strong></p><button class="ui-button ui-button--outline" type="button" data-action="clear-result">Chạy ảnh khác</button></div>${renderMenuResult(result)}` : ''}
+        ${result ? `<div class="admin-ocr-result-actions"><p>Quán: <strong>${escapeHtml(restaurants.find(r => r.id === (result.restaurantId ?? result.restaurant_id))?.name ?? result.restaurantId ?? result.restaurant_id)}</strong></p><button class="ui-button ui-button--outline" type="button" data-action="clear-result">Chạy ảnh khác</button></div>${renderMenuResult(result)}` : ''}
       </section>`;
+    const cropImage = root.querySelector('[data-role="crop-image"]');
+    if (cropImage) {
+      cropImage.addEventListener('load', drawCrop, { once: true });
+      if (cropImage.complete) drawCrop();
+    }
+  }
+
+  function drawCrop() {
+    const image = root?.querySelector('[data-role="crop-image"]');
+    const box = root?.querySelector('[data-role="crop-box"]');
+    const status = root?.querySelector('[data-role="crop-status"]');
+    if (!image || !box || !status) return;
+    box.hidden = !crop || !image.naturalWidth;
+    status.textContent = crop ? `Vùng OCR: ${crop.width} × ${crop.height} px` : 'Đang dùng toàn bộ ảnh';
+    if (box.hidden) return;
+    Object.assign(box.style, { left: `${crop.x / image.naturalWidth * 100}%`, top: `${crop.y / image.naturalHeight * 100}%`, width: `${crop.width / image.naturalWidth * 100}%`, height: `${crop.height / image.naturalHeight * 100}%` });
+  }
+
+  function imagePoint(event, image) {
+    const rect = image.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(image.naturalWidth, Math.round((event.clientX - rect.left) / rect.width * image.naturalWidth))), y: Math.max(0, Math.min(image.naturalHeight, Math.round((event.clientY - rect.top) / rect.height * image.naturalHeight))) };
+  }
+
+  function handlePointerDown(event) {
+    if (!event.target.matches('[data-role="crop-image"]') || submitting || event.button !== 0 || !event.target.naturalWidth) return;
+    event.preventDefault();
+    dragStart = { ...imagePoint(event, event.target), pointerId: event.pointerId };
+    event.target.setPointerCapture(event.pointerId);
+  }
+
+  function handlePointerMove(event) {
+    if (!dragStart || dragStart.pointerId !== event.pointerId || !event.target.matches('[data-role="crop-image"]')) return;
+    const end = imagePoint(event, event.target);
+    const width = Math.abs(end.x - dragStart.x), height = Math.abs(end.y - dragStart.y);
+    crop = width && height ? { x: Math.min(end.x, dragStart.x), y: Math.min(end.y, dragStart.y), width, height } : null;
+    drawCrop();
+  }
+
+  function handlePointerEnd(event) {
+    if (!dragStart || dragStart.pointerId !== event.pointerId) return;
+    if (event.type === 'pointerup') handlePointerMove(event);
+    else { crop = null; drawCrop(); }
+    dragStart = null;
   }
 
   async function loadBootstrap() {
@@ -170,6 +220,9 @@ export function createAdminOcrView(options = {}) {
   }
 
   function setFile(file) {
+    if (verifying || submitting) return;
+    crop = null;
+    dragStart = null;
     if (!file) {
       selectedFile = null;
       submitError = null;
@@ -195,7 +248,29 @@ export function createAdminOcrView(options = {}) {
   }
 
   async function handleSubmit(event) {
-    if (!event.target.matches('[data-role="ocr-form"]')) return;
+    if (event.target.matches('[data-role="verify-form"]')) {
+      event.preventDefault();
+      if (verifying || submitting || !result?.menu) return;
+      const form = event.target;
+      const errorBox = form.querySelector('[data-role="verify-error"]');
+      const fields = form.querySelector('[data-role="verify-fields"]');
+      try {
+        const payload = verificationPayload(result.menu, new FormData(form));
+        verifying = true;
+        fields.disabled = true;
+        errorBox.textContent = 'Đang xác nhận…';
+        const confirmed = await verifyMenuDraft(result.menu.menuVersionId, payload);
+        result = { ...result, ...confirmed, menu_version_id: confirmed.menu.menuVersionId };
+        render();
+      } catch (error) {
+        errorBox.textContent = error.message;
+      } finally {
+        verifying = false;
+        fields.disabled = false;
+      }
+      return;
+    }
+    if (verifying || !event.target.matches('[data-role="ocr-form"]')) return;
     event.preventDefault();
     const data = new FormData(event.target);
     selectedRestaurantId = String(data.get('restaurantId') ?? selectedRestaurantId);
@@ -208,12 +283,8 @@ export function createAdminOcrView(options = {}) {
     result = null;
     render();
     try {
-      result = await runMenuOcr({ restaurantId, image: selectedFile, method });
+      result = await runMenuOcr({ restaurantId, image: selectedFile, method, crop });
       const restaurant = restaurants.find((item) => item.id === restaurantId);
-      if (restaurant) {
-        restaurant.hasActiveMenu = true;
-        restaurant.activeMenuSource = result.menu?.sourceType ?? method;
-      }
       options.onCompleted?.(result, restaurant);
     } catch (error) {
       submitError = error.message;
@@ -230,7 +301,9 @@ export function createAdminOcrView(options = {}) {
   }
 
   function handleClick(event) {
+    if (verifying || submitting) return;
     const action = event.target.closest('[data-action]')?.dataset.action;
+    if (action === 'reset-crop') { crop = null; drawCrop(); }
     if (action === 'retry-bootstrap') loadBootstrap();
     if (action === 'remove-file') setFile(null);
     if (action === 'clear-result') { result = null; submitError = null; render(); }
@@ -259,6 +332,10 @@ export function createAdminOcrView(options = {}) {
     mount(container) {
       if (!container) throw new Error('Thiếu container cho màn hình Admin OCR.');
       root = container;
+      root.addEventListener('pointerdown', handlePointerDown);
+      root.addEventListener('pointermove', handlePointerMove);
+      root.addEventListener('pointerup', handlePointerEnd);
+      root.addEventListener('pointercancel', handlePointerEnd);
       root.addEventListener('submit', handleSubmit);
       root.addEventListener('change', handleChange);
       root.addEventListener('click', handleClick);
@@ -270,6 +347,10 @@ export function createAdminOcrView(options = {}) {
     },
     unmount() {
       if (!root) return;
+      root.removeEventListener('pointerdown', handlePointerDown);
+      root.removeEventListener('pointermove', handlePointerMove);
+      root.removeEventListener('pointerup', handlePointerEnd);
+      root.removeEventListener('pointercancel', handlePointerEnd);
       root.removeEventListener('submit', handleSubmit);
       root.removeEventListener('change', handleChange);
       root.removeEventListener('click', handleClick);

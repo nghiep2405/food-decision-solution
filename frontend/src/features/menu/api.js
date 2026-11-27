@@ -10,10 +10,11 @@ export async function fetchRestaurantMenu(restaurantId) {
   }));
 }
 
-export function uploadMenuForOcr({ restaurantId, image, method = 'visual' }) {
+export function uploadMenuForOcr({ restaurantId, image, method = 'visual', crop = null }) {
   const formData = new FormData();
   formData.set('restaurant_id', restaurantId);
   formData.set('method', method);
   formData.set('image', image);
+  if (crop) formData.set('crop', JSON.stringify(crop));
   return uploadForm('/api/v1/menus/ocr', formData, { timeoutMs: 60000 });
 }

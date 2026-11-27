@@ -6,6 +6,7 @@ import os
 import sqlite3
 import time
 from datetime import datetime, timezone
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 from typing import Literal
@@ -15,9 +16,11 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
 from app.data.database import DATA_ROOT, connect_database
 from app.data.repositories import MenuRepository, RestaurantRepository
-from app.features.menu.ai_client import structure_menu_text
+from app.features.menu.ai_client import TEXT_PROMPT_VERSION, structure_menu_text
+from app.features.menu.crop import prepare_ocr_image
 from app.features.menu.ocr_service import (
     OCRDependencyError,
+    VISUAL_PROMPT_VERSION,
     extract_menu_text_pipeline,
     extract_menu_visual,
     find_tesseract_command,
@@ -28,6 +31,8 @@ from app.features.menu.schemas import (
     AdminRestaurantOptionsResponse,
     OCRConfigStatus,
 )
+
+from app.features.menu.verification import VerifyMenuRequest, verify_menu
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["menu-ocr"])
@@ -123,6 +128,7 @@ async def upload_menu_for_ocr(
     restaurant_id: str = Form(...),
     image: UploadFile = File(...),
     method: Literal["visual", "text_pipeline", "textPipeline"] = Form("text_pipeline"),
+    crop: str | None = Form(None),
 ):
     method = "text_pipeline" if method == "textPipeline" else method
     with connect_database() as connection:
@@ -143,6 +149,10 @@ async def upload_menu_for_ocr(
         raise HTTPException(400, "Nội dung ảnh không hợp lệ.") from exc
     if image_format not in EXTENSIONS or image.content_type != MIME_TYPES[image_format]:
         raise HTTPException(415, "Định dạng ảnh không khớp loại file.")
+    try:
+        ocr_bytes, crop_metadata = prepare_ocr_image(image_bytes, crop)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(422, "Vùng crop không hợp lệ.") from exc
     if not all((os.getenv("FACULTY_AI_API_URL"), os.getenv("FACULTY_AI_API_KEY"), os.getenv("FACULTY_AI_MODEL"))):
         raise HTTPException(503, "Chưa cấu hình Faculty AI để thực hiện OCR.")
 
@@ -180,7 +190,8 @@ async def upload_menu_for_ocr(
                 raise
         repository.save_ocr_run({
             "id": run_id, "menu_asset_id": asset_id, "method": method,
-            "model_version": model_version, "prompt_version": "v1",
+            "model_version": model_version,
+            "prompt_version": VISUAL_PROMPT_VERSION if method == "visual" else TEXT_PROMPT_VERSION,
             "raw_text": None, "raw_response_path": None,
             "structured_json_path": None, "confidence": None,
             "latency_ms": None, "status": "pending",
@@ -192,12 +203,16 @@ async def upload_menu_for_ocr(
     capture = {}
     started = time.perf_counter()
     try:
+        RESULT_DIR.mkdir(parents=True, exist_ok=True)
+        (RESULT_DIR / f"{run_id}_crop.json").write_text(
+            json.dumps(crop_metadata, ensure_ascii=False), encoding="utf-8"
+        )
         if method == "visual":
-            menu = extract_menu_visual(image_bytes, restaurant_id, version_id, capture=capture)
+            menu = extract_menu_visual(ocr_bytes, restaurant_id, version_id, capture=capture)
         else:
             menu = extract_menu_text_pipeline(
-                image_bytes, restaurant_id, version_id,
-                text_structurer=structure_menu_text, capture=capture,
+                ocr_bytes, restaurant_id, version_id,
+                text_structurer=partial(structure_menu_text, capture=capture), capture=capture,
             )
         latency_ms = int((time.perf_counter() - started) * 1000)
         RESULT_DIR.mkdir(parents=True, exist_ok=True)
@@ -211,7 +226,7 @@ async def upload_menu_for_ocr(
             with connection:
                 repository.save_normalized_menu(
                     menu, menu_asset_id=asset_id, ocr_run_id=run_id,
-                    activate=True, manage_transaction=False,
+                    activate=False, manage_transaction=False,
                 )
                 repository.update_ocr_run(
                     run_id, status="completed", latency_ms=latency_ms,
@@ -225,6 +240,7 @@ async def upload_menu_for_ocr(
             "asset_id": asset_id, "ocr_run_id": run_id,
             "menu_version_id": version_id, "restaurant_id": restaurant_id,
             "method": method, "status": "completed",
+            "crop": crop_metadata, "verification_status": "unverified",
             "menu": menu.model_dump(mode="json", by_alias=True),
         }
     except Exception as exc:
@@ -238,15 +254,30 @@ async def upload_menu_for_ocr(
         else:
             logger.exception("OCR failed (asset_id=%s run_id=%s)", asset_id, run_id)
         latency_ms = int((time.perf_counter() - started) * 1000)
+        # Preserve an AI response that arrived but could not be parsed/normalized.
+        failed_raw_path = None
+        if "raw_response" in capture or "structured" in capture:
+            try:
+                raw_path = RESULT_DIR / f"{run_id}_raw.json"
+                raw_path.write_text(json.dumps(capture.get("raw_response", capture.get("structured")), ensure_ascii=False, indent=2), encoding="utf-8")
+                failed_raw_path = str(raw_path)
+            except OSError:
+                logger.warning("Could not persist failed OCR response (run_id=%s)", run_id)
         with connect_database() as connection:
             repository = MenuRepository(connection)
             with connection:
                 repository.update_ocr_run(
                     run_id, status="failed", latency_ms=latency_ms,
                     processed_at=utc_now(), error_message=str(exc)[:1000],
-                    raw_text=capture.get("raw_text"),
+                    raw_text=capture.get("raw_text"), raw_response_path=failed_raw_path,
                 )
                 repository.update_asset_status(asset_id, "failed")
         if isinstance(exc, OCRDependencyError):
             raise HTTPException(503, str(exc)) from exc
         raise HTTPException(502, "Xử lý OCR thất bại; kiểm tra log backend.") from exc
+
+
+@router.patch('/menus/{version_id}/verify')
+def confirm_menu(version_id: str, payload: VerifyMenuRequest):
+    with connect_database() as connection:
+        return verify_menu(connection, version_id, payload)

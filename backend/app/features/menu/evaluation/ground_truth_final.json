@@ -1,0 +1,1466 @@
+{
+  "dataset": "final03_synthetic_v1",
+  "annotation_status": "human_reviewed"
+  "samples": [
+    {
+      "image_file": "images/01_clear.png",
+      "group": "clear",
+      "source_type": "synthetic_fixture",
+      "split": "dev",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Cơm gà",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm sườn",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm cá kho",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh chua",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Rau luộc",
+          "price": 15000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà đá",
+          "price": 5000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cơm gà",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm sườn",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm cá kho",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh chua",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Rau luộc",
+          "price": 15000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà đá",
+          "price": 5000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/02_clear.png",
+      "group": "clear",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Bún bò Huế",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún riêu",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún chả",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún mắm",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún mọc",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước sả",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Bún bò Huế",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún riêu",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún chả",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún mắm",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún mọc",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước sả",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/03_clear.png",
+      "group": "clear",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Cơm nấm",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún chay",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Đậu hũ kho",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi ngó sen",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh rong biển",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sữa đậu nành",
+          "price": 12000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cơm nấm",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún chay",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Đậu hũ kho",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi ngó sen",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh rong biển",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sữa đậu nành",
+          "price": 12000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/04_clear.png",
+      "group": "clear",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Bánh mì trứng",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh mì thịt",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh bao",
+          "price": 18000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Xôi gà",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Xôi đậu",
+          "price": 22000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cà phê sữa",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Bánh mì trứng",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh mì thịt",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh bao",
+          "price": 18000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Xôi gà",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Xôi đậu",
+          "price": 22000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cà phê sữa",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/05_multi-column.png",
+      "group": "multi-column",
+      "source_type": "synthetic_fixture",
+      "split": "dev",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Hủ tiếu Nam Vang",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Hủ tiếu bò viên",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh xèo",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi cuốn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè đậu xanh",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước dừa",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Hủ tiếu Nam Vang",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Hủ tiếu bò viên",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh xèo",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi cuốn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè đậu xanh",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước dừa",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/06_multi-column.png",
+      "group": "multi-column",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Mì Quảng gà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Quảng tôm",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cao lầu",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh bèo",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh nậm",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà gừng",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Mì Quảng gà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Quảng tôm",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cao lầu",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh bèo",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh nậm",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà gừng",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/07_multi-column.png",
+      "group": "multi-column",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Cơm chiên trứng",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm chiên tôm",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì xào bò",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì xào rau",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Súp cua",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà hoa cúc",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cơm chiên trứng",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm chiên tôm",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì xào bò",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì xào rau",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Súp cua",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà hoa cúc",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/08_multi-column.png",
+      "group": "multi-column",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Bánh tráng cuốn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh tráng nướng",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Khoai chiên",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bắp xào",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cá viên",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà tắc",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Bánh tráng cuốn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh tráng nướng",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Khoai chiên",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bắp xào",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cá viên",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà tắc",
+          "price": 15000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/09_rotated.png",
+      "group": "rotated",
+      "source_type": "synthetic_fixture",
+      "split": "dev",
+      "crop": {
+        "x": 35,
+        "y": 35,
+        "width": 1202,
+        "height": 892
+      },
+      "items_full": [
+        {
+          "dishName": "Phở tái",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở nạm",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở gà",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở bò viên",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Quẩy",
+          "price": 10000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chanh muối",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Phở tái",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở nạm",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở gà",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Phở bò viên",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Quẩy",
+          "price": 10000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chanh muối",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/10_rotated.png",
+      "group": "rotated",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 35,
+        "y": 35,
+        "width": 1226,
+        "height": 930
+      },
+      "items_full": [
+        {
+          "dishName": "Bánh căn",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh ướt lòng gà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh mì xíu mại",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sữa nóng",
+          "price": 15000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Yaourt",
+          "price": 18000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Dâu tươi",
+          "price": 35000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Bánh căn",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh ướt lòng gà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh mì xíu mại",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sữa nóng",
+          "price": 15000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Yaourt",
+          "price": 18000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Dâu tươi",
+          "price": 35000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/11_rotated.png",
+      "group": "rotated",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 35,
+        "y": 35,
+        "width": 1250,
+        "height": 968
+      },
+      "items_full": [
+        {
+          "dishName": "Cơm bò lúc lắc",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm thịt kho",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm gà xối mỡ",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm cá chiên",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh bí đỏ",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà chanh",
+          "price": 18000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cơm bò lúc lắc",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm thịt kho",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm gà xối mỡ",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cơm cá chiên",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Canh bí đỏ",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà chanh",
+          "price": 18000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/12_rotated.png",
+      "group": "rotated",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 35,
+        "y": 35,
+        "width": 1262,
+        "height": 986
+      },
+      "items_full": [
+        {
+          "dishName": "Mực xào",
+          "price": 85000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Tôm rang",
+          "price": 90000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cá hấp",
+          "price": 75000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nghêu sả",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo hàu",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước cam",
+          "price": 30000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Mực xào",
+          "price": 85000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Tôm rang",
+          "price": 90000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cá hấp",
+          "price": 75000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nghêu sả",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo hàu",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước cam",
+          "price": 30000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/13_low-light.png",
+      "group": "low-light",
+      "source_type": "synthetic_fixture",
+      "split": "dev",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Cháo gà",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo sườn",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo thịt bằm",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Miến gà",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh giò",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà nóng",
+          "price": 10000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cháo gà",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo sườn",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cháo thịt bằm",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Miến gà",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh giò",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà nóng",
+          "price": 10000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/14_low-light.png",
+      "group": "low-light",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Gà nướng",
+          "price": 80000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sườn nướng",
+          "price": 85000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bò nướng",
+          "price": 95000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bắp nướng",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nấm nướng",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước ép ổi",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Gà nướng",
+          "price": 80000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sườn nướng",
+          "price": 85000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bò nướng",
+          "price": 95000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bắp nướng",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nấm nướng",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước ép ổi",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/15_low-light.png",
+      "group": "low-light",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Nui xào bò",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Ý sốt cà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Ý hải sản",
+          "price": 75000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Salad trứng",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Súp bí",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước táo",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Nui xào bò",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Ý sốt cà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì Ý hải sản",
+          "price": 75000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Salad trứng",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Súp bí",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước táo",
+          "price": 25000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/16_low-light.png",
+      "group": "low-light",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 80,
+        "y": 65,
+        "width": 1040,
+        "height": 730
+      },
+      "items_full": [
+        {
+          "dishName": "Bánh hỏi",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún thịt nướng",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nem nướng",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi gà",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Rau trộn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè bưởi",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Bánh hỏi",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bún thịt nướng",
+          "price": 50000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nem nướng",
+          "price": 60000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Gỏi gà",
+          "price": 65000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Rau trộn",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè bưởi",
+          "price": 20000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/17_focus-region.png",
+      "group": "focus-region",
+      "source_type": "synthetic_fixture",
+      "split": "dev",
+      "crop": {
+        "x": 115,
+        "y": 245,
+        "width": 475,
+        "height": 490
+      },
+      "items_full": [
+        {
+          "dishName": "Trà đào",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà vải",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà sen",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh flan",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh su kem",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh bông lan",
+          "price": 30000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Trà đào",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà vải",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Trà sen",
+          "price": 45000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/18_focus-region.png",
+      "group": "focus-region",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 115,
+        "y": 245,
+        "width": 475,
+        "height": 490
+      },
+      "items_full": [
+        {
+          "dishName": "Mì vịt tiềm",
+          "price": 70000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì hoành thánh",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì gà",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Sữa bắp",
+          "price": 18000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước mía",
+          "price": 15000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nước suối",
+          "price": 10000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Mì vịt tiềm",
+          "price": 70000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì hoành thánh",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Mì gà",
+          "price": 45000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/19_focus-region.png",
+      "group": "focus-region",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 115,
+        "y": 245,
+        "width": 475,
+        "height": 490
+      },
+      "items_full": [
+        {
+          "dishName": "Gỏi cuốn tôm",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bò cuốn lá lốt",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nem cuốn",
+          "price": 45000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè hạt sen",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè khoai",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Chè đậu đỏ",
+          "price": 22000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Gỏi cuốn tôm",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bò cuốn lá lốt",
+          "price": 55000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Nem cuốn",
+          "price": 45000,
+          "currency": "VND"
+        }
+      ]
+    },
+    {
+      "image_file": "images/20_focus-region.png",
+      "group": "focus-region",
+      "source_type": "synthetic_fixture",
+      "split": "test",
+      "crop": {
+        "x": 115,
+        "y": 245,
+        "width": 475,
+        "height": 490
+      },
+      "items_full": [
+        {
+          "dishName": "Cà phê đen",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bạc xỉu",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cacao nóng",
+          "price": 40000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh quy",
+          "price": 20000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh chuối",
+          "price": 30000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bánh táo",
+          "price": 45000,
+          "currency": "VND"
+        }
+      ],
+      "items_crop": [
+        {
+          "dishName": "Cà phê đen",
+          "price": 25000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Bạc xỉu",
+          "price": 35000,
+          "currency": "VND"
+        },
+        {
+          "dishName": "Cacao nóng",
+          "price": 40000,
+          "currency": "VND"
+        }
+      ]
+    }
+  ]
+}
