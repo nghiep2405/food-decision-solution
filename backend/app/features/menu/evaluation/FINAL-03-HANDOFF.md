@@ -30,7 +30,9 @@ Kịch bản demo tại `#/admin/ocr`: chọn quán có menu active; upload ản
 | Benchmark unit test | 4/4 pass (ảnh Terminal Codespaces) |
 | Frontend `npm test` | 21/21 pass, 0 fail |
 | Frontend `npm run build` | Thành công, 5.90 giây; cảnh báo chunk lớn hơn 500 kB |
-| Backend crop/verification trên Codespaces | Chờ xác nhận kết quả |
+| Backend crop/verification trên Codespaces | 19/19 pass (1,45 giây; 70 warnings, chưa phân loại) |
+| Audit bản ZIP trước bản vá | 34/34 backend OCR + benchmark test pass |
+| Audit bản vá | 39 pass, 1 skip (môi trường audit thiếu pyvi; cần chạy lại CORS test trên Codespaces) |
 | Full backend suite, pip check | Chờ chạy |
 | Demo UI + Faculty AI thật | Chờ nhóm trưởng kiểm tra |
 
@@ -39,7 +41,7 @@ Lệnh kiểm tra (GitHub Codespaces):
 ```bash
 cd /workspaces/food-decision-solution/backend
 python -m pip install -e '.[dev]'
-python -m pytest tests/test_menu_crop.py tests/test_menu_verification.py -v
+python -m pytest tests/test_menu_crop.py tests/test_menu_verification.py tests/test_final03_integration.py -v
 python -m pytest app/features/menu/evaluation/test_benchmark.py -q
 python -m pip check
 cd ../frontend
@@ -88,5 +90,15 @@ Bốn cấu hình: visual-full, visual-crop, text-full, text-crop. Dataset gồm
 - Người xác nhận là tên nhập ở mức demo, chưa phải tài khoản được xác thực. Audit dùng notes và file theo OCR run; cần reviewer xác nhận tương thích migration/contract chung.
 - Ground truth được soạn trước khi render, chưa có xác minh thủ công độc lập.
 - Chưa chạy đủ benchmark Faculty AI, chưa đo correction time, chưa có kết luận default.
-- Cần Backend test evidence, kiểm thử demo tích hợp, screenshot và reviewer approval trước khi đánh dấu Done.
+- Cần chạy lại test bản vá trên Codespaces, kiểm thử demo tích hợp trên trình duyệt, screenshot và reviewer approval trước khi đánh dấu Done.
 - Đối chiếu Jira key thật với quy định branch/commit của nhóm; Draft PR vào dev theo git_branch_commit_rules.md, không tự merge main.
+
+## 7. Bản vá audit FINAL-03
+
+- Bổ sung PATCH vào CORS của app chính (file dùng chung, cần reviewer xem).
+- Kiểm tra ngôn ngữ Tesseract bằng `--list-langs` khi không tìm được tessdata cạnh executable.
+- Lưu raw response JSON của AI cho cả hai phương pháp khi nhận được; nếu parse/normalize thất bại vẫn lưu response đã capture. Không có raw response nếu provider chưa trả được JSON HTTP.
+- Phân biệt `visual-v1` và `text-v1`; khi đổi prompt cần tăng version. Manifest benchmark lưu cả version lẫn hash nguồn.
+- Test mới kiểm tra CORS, luồng crop → draft → sửa → verify → đọc menu active (mock OCR), raw response lỗi và ngôn ngữ hệ thống. Không thay schema hoặc contract dùng chung.
+- Đối chiếu ground truth bằng `GROUND_TRUTH_REVIEW.md`; không đánh dấu hoàn thành trước khi người kiểm tra thực hiện.
+- Thống nhất với Nghiệp/reviewer việc dùng notes + file audit thay migration và hành vi thay toàn bộ menu khi xác nhận crop.
