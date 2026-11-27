@@ -336,3 +336,11 @@
   .admin-ocr-run-meta { grid-template-columns: 1fr; }
   .admin-ocr-ids p { grid-template-columns: 1fr; }
 }
+
+/* FINAL-03: crop coordinates refer to the uncropped image. */
+.ocr-focus { display: grid; gap: .5rem; }
+.ocr-focus-image { position: relative; width: 100%; line-height: 0; }
+.ocr-focus-image img { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: none; user-select: none; }
+.ocr-focus-image span { position: absolute; box-sizing: border-box; border: 2px solid #16803c; background: #16803c22; pointer-events: none; }
+.ocr-focus-image span[hidden] { display: none; }
+.ocr-focus button { justify-self: start; }
