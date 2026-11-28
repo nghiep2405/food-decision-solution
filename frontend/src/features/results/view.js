@@ -18,6 +18,20 @@ export function renderRankBadge(rank, score) {
   `;
 }
 
+
+const SIGNAL_LABELS = Object.freeze({
+  priceFit: 'Độ phù hợp ngân sách',
+  rating: 'Điểm đánh giá',
+  menuConfidence: 'Độ tin cậy thực đơn',
+  reviewReliability: 'Độ tin cậy đánh giá',
+  distance: 'Khoảng cách',
+  preferenceMatch: 'Độ phù hợp sở thích',
+});
+
+function formatSignalLabel(signal) {
+  return SIGNAL_LABELS[signal] ?? signal;
+}
+
 export function renderRankExplanation(rankedItem) {
   const usedPills = rankedItem.signalsUsed
     .map(
@@ -28,7 +42,7 @@ export function renderRankExplanation(rankedItem) {
 
   const missingText =
     rankedItem.missingSignals.length > 0
-      ? `Chưa có dữ liệu (không dùng để trừ điểm): ${rankedItem.missingSignals.join(', ')}.`
+      ? `Chưa có dữ liệu (không dùng để trừ điểm): ${rankedItem.missingSignals.map(formatSignalLabel).join(', ')}.`
       : 'Đã kiểm tra đầy đủ các tín hiệu xếp hạng chính.';
 
   return `

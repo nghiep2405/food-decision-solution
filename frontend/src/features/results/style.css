@@ -723,3 +723,115 @@
     align-items: flex-start;
   }
 }
+
+
+/* MVP-03: Results typography and readability polish */
+
+.results-explanation {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  gap: var(--space-3);
+}
+
+.results-explanation__heading {
+  align-items: flex-start;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.results-explanation__summary {
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.results-signal-pill {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  padding: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.results-missing-note {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.results-btn {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+@media (min-width: 561px) {
+  .results-explanation__heading {
+    flex-wrap: wrap;
+  }
+
+  .results-card__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .results-card__actions .results-btn:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .results-explanation__heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+@media (max-width: 560px) {
+  .results-compare-card > .results-card__topline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .results-compare-card > .results-card__topline > strong {
+    width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+
+  .results-compare-card > .results-card__topline > .results-btn {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+
+/* MVP-03: Align Results toolbar fields */
+
+@media (min-width: 851px) {
+  .results-toolbar__controls {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .results-control-group {
+    align-self: flex-end;
+  }
+
+  .results-toggle-label {
+    box-sizing: border-box;
+    min-height: 44px;
+    margin: 0;
+    align-self: flex-end;
+  }
+
+  .results-control-group select {
+    height: 44px;
+  }
+}

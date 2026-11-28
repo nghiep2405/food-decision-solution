@@ -18,6 +18,7 @@ const SIGNAL_LABELS = Object.freeze({
   reviewReliability: 'Độ tin cậy đánh giá (Review reliability)',
   crowdLevel: 'Mức độ đông đúc (đã xác thực)',
   routeTime: 'Thời gian di chuyển thực tế',
+  menuConfidence: 'Độ tin cậy thực đơn',
 });
 
 export function normalizeText(value) {
@@ -508,7 +509,9 @@ export function buildComparisonRows(comparedResults = []) {
         isMissing: false,
         text:
           item.missingSignals.length > 0
-            ? item.missingSignals.join(', ')
+            ? item.missingSignals
+              .map((signal) => SIGNAL_LABELS[signal] ?? signal)
+              .join(', ')
             : 'Đủ toàn bộ tín hiệu chính',
       })),
     },
